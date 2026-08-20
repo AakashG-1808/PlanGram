@@ -1,0 +1,159 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "road_id": "road_001",
+        "road_type": "main",
+        "surface": "unpaved",
+        "length_m": 715
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            77.71092460326732,
+            12.68451754136891
+          ],
+          [
+            77.71526409278412,
+            12.689279920582292
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "road_id": "road_002",
+        "road_type": "main",
+        "surface": "unpaved",
+        "length_m": 370
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            77.71526409278412,
+            12.689279920582292
+          ],
+          [
+            77.7130262547112,
+            12.686799162778598
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "road_id": "road_003",
+        "road_type": "local",
+        "surface": "unpaved",
+        "length_m": 754
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            77.7130262547112,
+            12.686799162778598
+          ],
+          [
+            77.71979737294276,
+            12.686201212450438
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "road_id": "road_004",
+        "road_type": "local",
+        "surface": "unpaved",
+        "length_m": 1176
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            77.71979737294276,
+            12.686201212450438
+          ],
+          [
+            77.71060784775855,
+            12.680918740877008
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "road_id": "road_005",
+        "road_type": "local",
+        "surface": "unpaved",
+        "length_m": 1673
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            77.71060784775855,
+            12.680918740877008
+          ],
+          [
+            77.72548902150388,
+            12.683352014900116
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "road_id": "road_006",
+        "road_type": "path",
+        "surface": "unpaved",
+        "length_m": 238
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            77.72548902150388,
+            12.683352014900116
+          ],
+          [
+            77.72334904382777,
+            12.683174142784244
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "road_id": "road_007",
+        "road_type": "path",
+        "surface": "paved",
+        "length_m": 1859
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            77.72334904382777,
+            12.683174142784244
+          ],
+          [
+            77.70730446524529,
+            12.678357854507501
+          ]
+        ]
+      }
+    }
+  ]
+}

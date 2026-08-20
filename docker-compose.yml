@@ -1,0 +1,93 @@
+version: '3.8'
+
+services:
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: plangram-backend
+    ports:
+      - "8000:8000"
+    environment:
+      # Data configuration
+      - DATA_MODE=${DATA_MODE:-prototype}
+      
+      # AI configuration
+      - AI_PROVIDER=${AI_PROVIDER:-none}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - AI_TEMPERATURE=${AI_TEMPERATURE:-0.7}
+      - AI_MAX_TOKENS=${AI_MAX_TOKENS:-2048}
+      
+      # Backend configuration
+      - BACKEND_HOST=0.0.0.0
+      - BACKEND_PORT=8000
+      - BACKEND_RELOAD=false
+      - DEBUG=false
+      
+      # CORS
+      - CORS_ORIGINS=http://localhost:5173,http://localhost:3000,http://localhost
+      
+      # GIS settings
+      - DISTANCE_THRESHOLD_METERS=500
+      - INTERNAL_CRS=EPSG:4326
+      
+      # Optimization
+      - OPTIMIZATION_TIMEOUT_SECONDS=60
+      
+      # Logging
+      - LOG_LEVEL=INFO
+    
+    volumes:
+      - ./data:/app/data
+      - ./backend/app:/app/app
+    
+    restart: unless-stopped
+    
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/api/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: plangram-frontend
+    ports:
+      - "80:80"
+    environment:
+      - VITE_API_BASE_URL=http://localhost:8000/api
+    
+    depends_on:
+      - backend
+    
+    restart: unless-stopped
+    
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+# Optional: PostgreSQL database (for future use)
+#  database:
+#    image: postgis/postgis:15-3.3
+#    container_name: plangram-db
+#    ports:
+#      - "5432:5432"
+#    environment:
+#      - POSTGRES_USER=plangram
+#      - POSTGRES_PASSWORD=plangram_password
+#      - POSTGRES_DB=plangram
+#    volumes:
+#      - postgres_data:/var/lib/postgresql/data
+#    restart: unless-stopped
+
+volumes:
+  postgres_data:

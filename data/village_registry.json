@@ -1,0 +1,30 @@
+[
+  {
+    "id": "village_01",
+    "name": "Chikkahullur",
+    "taluk": "Anekal",
+    "district": "Bengaluru Urban",
+    "state": "Karnataka",
+    "data_mode": "prototype",
+    "area_sq_km": 4.2,
+    "estimated_population": 2800,
+    "estimated_households": 650,
+    "description": "Representative village with clustered settlements and moderate infrastructure",
+    "priority_infrastructure": ["water", "waste"],
+    "created_at": "2026-08-20T00:00:00Z"
+  },
+  {
+    "id": "village_02",
+    "name": "Bandapalya",
+    "taluk": "Anekal",
+    "district": "Bengaluru Urban",
+    "state": "Karnataka",
+    "data_mode": "prototype",
+    "area_sq_km": 3.8,
+    "estimated_population": 2200,
+    "estimated_households": 520,
+    "description": "Representative village with dispersed settlements and limited water access",
+    "priority_infrastructure": ["water", "healthcare"],
+    "created_at": "2026-08-20T00:00:00Z"
+  }
+]

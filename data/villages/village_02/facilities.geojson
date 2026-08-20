@@ -1,0 +1,59 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "facility_id": "fac_water_002",
+        "facility_type": "water",
+        "name": "Water Point 2",
+        "status": "existing",
+        "capacity": 130,
+        "year_established": 2015
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.71435410442143,
+          12.689564073113797
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "facility_id": "fac_water_003",
+        "facility_type": "water",
+        "name": "Water Point 3",
+        "status": "existing",
+        "capacity": 117,
+        "year_established": 2015
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.70963795288826,
+          12.680609996953653
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "facility_id": "fac_school_001",
+        "facility_type": "education",
+        "name": "Primary School",
+        "status": "existing",
+        "capacity": 200,
+        "year_established": 2005
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.71878790853962,
+          12.677417964492776
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,102 @@
+{
+  "version": "1.0.0",
+  "currency": "INR",
+  "disclaimer": "All costs are INDICATIVE PROTOTYPE COSTS for planning purposes only. These are NOT official procurement rates.",
+  "last_updated": "2026-08-20",
+  "infrastructure_costs": {
+    "water_facility": {
+      "base_cost": 180000,
+      "unit": "per facility",
+      "description": "Community water access point with storage and distribution",
+      "cost_range": {
+        "min": 150000,
+        "max": 250000
+      },
+      "factors": [
+        "Terrain accessibility",
+        "Existing pipeline connectivity",
+        "Storage capacity required",
+        "Number of outlets"
+      ]
+    },
+    "waste_collection_point": {
+      "base_cost": 60000,
+      "unit": "per facility",
+      "description": "Designated waste segregation and collection point",
+      "cost_range": {
+        "min": 40000,
+        "max": 80000
+      },
+      "factors": [
+        "Site preparation",
+        "Bins and equipment",
+        "Signage and enclosure"
+      ]
+    },
+    "health_centre": {
+      "base_cost": 500000,
+      "unit": "per facility",
+      "description": "Basic primary health centre structure",
+      "cost_range": {
+        "min": 400000,
+        "max": 800000
+      },
+      "factors": [
+        "Building size",
+        "Equipment and supplies",
+        "Road access",
+        "Utilities connection"
+      ]
+    },
+    "public_toilet": {
+      "base_cost": 120000,
+      "unit": "per facility",
+      "description": "Community sanitation facility",
+      "cost_range": {
+        "min": 100000,
+        "max": 180000
+      },
+      "factors": [
+        "Number of units",
+        "Water connection",
+        "Septic system",
+        "Maintenance provisions"
+      ]
+    },
+    "bus_stop": {
+      "base_cost": 35000,
+      "unit": "per facility",
+      "description": "Basic bus shelter with seating",
+      "cost_range": {
+        "min": 25000,
+        "max": 50000
+      },
+      "factors": [
+        "Shelter design",
+        "Foundation requirements",
+        "Lighting"
+      ]
+    }
+  },
+  "maintenance_costs": {
+    "water_facility": {
+      "annual_cost": 18000,
+      "description": "Annual maintenance estimate"
+    },
+    "waste_collection_point": {
+      "annual_cost": 12000,
+      "description": "Annual maintenance estimate"
+    },
+    "health_centre": {
+      "annual_cost": 80000,
+      "description": "Annual maintenance estimate (structure only, excludes staff)"
+    }
+  },
+  "assumptions": [
+    "Costs exclude land acquisition",
+    "Costs assume reasonable site accessibility",
+    "Costs are 2026 estimates for Karnataka rural context",
+    "Actual costs will vary based on site-specific conditions",
+    "Costs do not include professional fees or administrative overheads"
+  ]
+}

@@ -1,0 +1,95 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "facility_id": "fac_water_001",
+        "facility_type": "water",
+        "name": "Water Point 1",
+        "status": "existing",
+        "capacity": 143,
+        "year_established": 2022
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.69069975490186,
+          12.695263757837072
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "facility_id": "fac_water_002",
+        "facility_type": "water",
+        "name": "Water Point 2",
+        "status": "existing",
+        "capacity": 104,
+        "year_established": 2016
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.69864531269013,
+          12.69057505560039
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "facility_id": "fac_water_003",
+        "facility_type": "water",
+        "name": "Water Point 3",
+        "status": "existing",
+        "capacity": 157,
+        "year_established": 2015
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.69762307376389,
+          12.692540664585113
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "facility_id": "fac_water_004",
+        "facility_type": "water",
+        "name": "Water Point 4",
+        "status": "existing",
+        "capacity": 104,
+        "year_established": 2010
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.69813965368891,
+          12.690838791321651
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "facility_id": "fac_school_001",
+        "facility_type": "education",
+        "name": "Primary School",
+        "status": "existing",
+        "capacity": 200,
+        "year_established": 2005
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.69705677257367,
+          12.699156612737813
+        ]
+      }
+    }
+  ]
+}

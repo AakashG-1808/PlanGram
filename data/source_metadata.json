@@ -1,0 +1,190 @@
+{
+  "metadata_version": "1.0.0",
+  "created_at": "2026-08-20T00:00:00Z",
+  "source_types": {
+    "REAL_OFFICIAL": {
+      "description": "Verified official government data from authorized sources",
+      "trust_level": "high",
+      "examples": ["Official SVAMITVA property data", "Census data", "Survey of India maps"]
+    },
+    "OPEN_PUBLIC": {
+      "description": "Publicly available datasets from reputable sources",
+      "trust_level": "medium-high",
+      "examples": ["OpenStreetMap", "Bhuvan", "ISRO datasets"]
+    },
+    "ESTIMATED": {
+      "description": "Calculated or estimated values based on available data",
+      "trust_level": "medium",
+      "examples": ["Population estimates from building counts", "Network distances"]
+    },
+    "SYNTHETIC": {
+      "description": "Representative data created for prototype/demonstration",
+      "trust_level": "prototype-only",
+      "examples": ["Demo village datasets", "Test scenarios"]
+    }
+  },
+  "datasets": {
+    "village_01": {
+      "village_id": "village_01",
+      "village_name": "Chikkahullur",
+      "data_mode": "prototype",
+      "layers": {
+        "boundary": {
+          "source_type": "SYNTHETIC",
+          "official": false,
+          "source_name": "PlanGram representative prototype dataset",
+          "description": "Representative village boundary for prototype validation",
+          "geometry_type": "Polygon",
+          "crs": "EPSG:4326",
+          "feature_count": 1,
+          "created_at": "2026-08-20"
+        },
+        "buildings": {
+          "source_type": "SYNTHETIC",
+          "official": false,
+          "source_name": "PlanGram representative prototype dataset",
+          "description": "Representative building footprints with realistic clustering patterns",
+          "geometry_type": "Polygon",
+          "crs": "EPSG:4326",
+          "feature_count": 720,
+          "attributes": ["building_id", "building_type", "estimated_households", "estimated_population"],
+          "created_at": "2026-08-20"
+        },
+        "parcels": {
+          "source_type": "SYNTHETIC",
+          "official": false,
+          "source_name": "PlanGram representative prototype dataset",
+          "description": "Representative land parcels",
+          "geometry_type": "Polygon",
+          "crs": "EPSG:4326",
+          "feature_count": 650,
+          "attributes": ["parcel_id", "parcel_type", "area_sq_m"],
+          "created_at": "2026-08-20"
+        },
+        "roads": {
+          "source_type": "SYNTHETIC",
+          "official": false,
+          "source_name": "PlanGram representative prototype dataset",
+          "description": "Representative road network",
+          "geometry_type": "LineString",
+          "crs": "EPSG:4326",
+          "feature_count": 68,
+          "attributes": ["road_id", "road_type", "length_m"],
+          "created_at": "2026-08-20"
+        },
+        "water_bodies": {
+          "source_type": "SYNTHETIC",
+          "official": false,
+          "source_name": "PlanGram representative prototype dataset",
+          "description": "Representative water bodies (tanks, ponds)",
+          "geometry_type": "Polygon",
+          "crs": "EPSG:4326",
+          "feature_count": 3,
+          "attributes": ["waterbody_id", "waterbody_type", "area_sq_m"],
+          "created_at": "2026-08-20"
+        },
+        "facilities": {
+          "source_type": "SYNTHETIC",
+          "official": false,
+          "source_name": "PlanGram representative prototype dataset",
+          "description": "Existing infrastructure facilities",
+          "geometry_type": "Point",
+          "crs": "EPSG:4326",
+          "feature_count": 5,
+          "attributes": ["facility_id", "facility_type", "name", "capacity"],
+          "created_at": "2026-08-20"
+        },
+        "households": {
+          "source_type": "ESTIMATED",
+          "official": false,
+          "source_name": "Estimated from building footprints",
+          "description": "Household-level data estimated from building characteristics",
+          "attributes": ["household_id", "building_id", "estimated_population", "estimated"],
+          "record_count": 650,
+          "created_at": "2026-08-20"
+        }
+      }
+    },
+    "village_02": {
+      "village_id": "village_02",
+      "village_name": "Bandapalya",
+      "data_mode": "prototype",
+      "layers": {
+        "boundary": {
+          "source_type": "SYNTHETIC",
+          "official": false,
+          "source_name": "PlanGram representative prototype dataset",
+          "description": "Representative village boundary for prototype validation",
+          "geometry_type": "Polygon",
+          "crs": "EPSG:4326",
+          "feature_count": 1,
+          "created_at": "2026-08-20"
+        },
+        "buildings": {
+          "source_type": "SYNTHETIC",
+          "official": false,
+          "source_name": "PlanGram representative prototype dataset",
+          "description": "Representative building footprints with dispersed settlement pattern",
+          "geometry_type": "Polygon",
+          "crs": "EPSG:4326",
+          "feature_count": 580,
+          "attributes": ["building_id", "building_type", "estimated_households", "estimated_population"],
+          "created_at": "2026-08-20"
+        },
+        "parcels": {
+          "source_type": "SYNTHETIC",
+          "official": false,
+          "source_name": "PlanGram representative prototype dataset",
+          "description": "Representative land parcels",
+          "geometry_type": "Polygon",
+          "crs": "EPSG:4326",
+          "feature_count": 520,
+          "attributes": ["parcel_id", "parcel_type", "area_sq_m"],
+          "created_at": "2026-08-20"
+        },
+        "roads": {
+          "source_type": "SYNTHETIC",
+          "official": false,
+          "source_name": "PlanGram representative prototype dataset",
+          "description": "Representative road network",
+          "geometry_type": "LineString",
+          "crs": "EPSG:4326",
+          "feature_count": 52,
+          "attributes": ["road_id", "road_type", "length_m"],
+          "created_at": "2026-08-20"
+        },
+        "water_bodies": {
+          "source_type": "SYNTHETIC",
+          "official": false,
+          "source_name": "PlanGram representative prototype dataset",
+          "description": "Representative water bodies (tanks, ponds)",
+          "geometry_type": "Polygon",
+          "crs": "EPSG:4326",
+          "feature_count": 2,
+          "attributes": ["waterbody_id", "waterbody_type", "area_sq_m"],
+          "created_at": "2026-08-20"
+        },
+        "facilities": {
+          "source_type": "SYNTHETIC",
+          "official": false,
+          "source_name": "PlanGram representative prototype dataset",
+          "description": "Existing infrastructure facilities",
+          "geometry_type": "Point",
+          "crs": "EPSG:4326",
+          "feature_count": 4,
+          "attributes": ["facility_id", "facility_type", "name", "capacity"],
+          "created_at": "2026-08-20"
+        },
+        "households": {
+          "source_type": "ESTIMATED",
+          "official": false,
+          "source_name": "Estimated from building footprints",
+          "description": "Household-level data estimated from building characteristics",
+          "attributes": ["household_id", "building_id", "estimated_population", "estimated"],
+          "record_count": 520,
+          "created_at": "2026-08-20"
+        }
+      }
+    }
+  }
+}
