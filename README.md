@@ -103,20 +103,66 @@ cp .env.example .env
 
 If you want AI-based explanations, add your API key in the environment file. If not, the demo version can still run without it.
 
-### 3. Start the app with Docker
+### 3. Manual setup (without Docker)
+
+#### Backend
 
 ```bash
-docker-compose up --build
+cd backend
+python -m venv venv
+
+# Windows PowerShell
+.\venv\Scripts\Activate.ps1
+
+# Or Windows Command Prompt
+# venv\Scripts\activate
+
+# Or macOS/Linux
+# source venv/bin/activate
+
+pip install --upgrade pip
+pip install -r requirements.txt
+python -m uvicorn app.main:app --reload
 ```
 
-This will start the backend and frontend together.
+The backend will run at:
+
+- http://127.0.0.1:8000
+- API docs: http://127.0.0.1:8000/api/docs
+
+#### Frontend
+
+Open a second terminal and run:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+The frontend will run at:
+
+- http://localhost:5173
 
 ### 4. Open the app
 
-- Frontend: http://localhost
-- API docs: http://localhost:8000/api/docs
+Once both are running, open the frontend in your browser:
+
+- http://localhost:5173
 
 You should now see the project running with demo village data.
+
+---
+
+## Run without Docker
+
+If you are not using Docker, you can start the project like this:
+
+1. Start the backend in one terminal.
+2. Start the frontend in another terminal.
+3. Open the frontend URL in your browser.
+
+This is the simplest option for local development and testing.
 
 ---
 
