@@ -1,211 +1,184 @@
 # PlanGram
 
-**Explore. Simulate. Plan.**
+PlanGram is a simple planning tool that helps people study village maps and decide where to place infrastructure such as water facilities, community services, or other public assets.
 
-Interactive Spatial Decision Support for Rural Infrastructure Planning
+It is built for planning teams, local officials, NGOs, and researchers who want to understand:
+
+- where services are currently weak or missing,
+- how many households may benefit,
+- which possible locations are best,
+- and how different budgets and choices affect the outcome.
 
 ---
 
-## Overview
+## What this program does
 
-PlanGram is a modern spatial decision-support and scenario-simulation platform designed for Panchayat-level infrastructure planning. It helps local planners answer critical questions:
+PlanGram helps turn a map into a planning decision.
 
-- **Where** should infrastructure be placed?
-- **How many** households/population will benefit?
-- **How will** accessibility change?
-- **Which locations** are unsuitable and why?
-- **What happens** if we move a proposed facility?
-- **Which plan** gives the highest benefit within budget?
+Instead of guessing where a facility should go, the system can:
 
-## Core Workflow
+- show a village or area on a map,
+- highlight underserved regions,
+- suggest possible facility locations,
+- estimate costs and coverage,
+- compare different scenarios,
+- and recommend the best option within a budget.
 
-```
-VISUALIZE → IDENTIFY GAPS → PROPOSE → SIMULATE → COMPARE → OPTIMIZE → EXPLAIN → DECIDE
-```
+This makes it easier to plan public infrastructure in a more informed and fair way.
 
-## Key Features
+---
 
-- **Scenario Simulation**: Test infrastructure placement before implementation
-- **Impact Analysis**: Real-time household/population benefit calculations
-- **Budget Optimization**: Generate optimal development plans within budget constraints
-- **Underserved Area Prioritization**: Focus on areas with poorest access
-- **Explainable Recommendations**: Transparent scoring and AI-assisted explanations
-- **Data Flexibility**: Support for synthetic prototype data and real GIS uploads
+## Simple example
 
-## Target Domain
+Imagine a village where many homes are far from a water access point.
 
-- **Geography**: Anekal Taluk, Karnataka
-- **Prototype Scope**: 2 representative villages
-- **Primary Use Case**: Optimal water facility placement
+With PlanGram, you can:
 
-## Technology Stack
+1. open the village map,
+2. see which households are underserved,
+3. choose one or more potential facility locations,
+4. set a project budget,
+5. generate several possible plans,
+6. compare them by coverage, cost, and impact,
+7. pick the best option.
 
-### Frontend
-- React + TypeScript
-- Tailwind CSS
-- MapLibre GL JS
+---
 
-### Backend
-- Python + FastAPI
-- GeoPandas, Shapely, GDAL, Rasterio
-- Google OR-Tools (optimization)
-- Google Gemini AI (natural language)
+## Who this is for
 
-### Deployment
-- Docker + Docker Compose
-- Nginx (production)
-- Multi-platform support (AWS, GCP, Azure)
+This project is meant for people who work on rural planning and local development, including:
 
-## Project Status
+- village planners,
+- government officials,
+- NGOs and field teams,
+- local development agencies,
+- researchers and students.
 
-**Current Status**: ✅ **MVP COMPLETE - Production Ready!**
+It is designed to make planning easier for non-technical users as well.
 
-- **Phases Completed**: 10/12 (83%)
-- **API Endpoints**: 35+
-- **Test Coverage**: 62/62 tests passing (100%)
-- **Documentation**: 1,300+ lines
-- **Deployment**: One-command with Docker
+---
 
-**See**: [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md) for detailed status
+## How it works
 
-## Phase Documentation
+PlanGram follows a simple workflow:
 
-All phase documentation is organized in [`docs/phases/`](docs/phases/):
+1. Select a village or map area
+2. Review current access and service gaps
+3. Add or adjust facility locations
+4. Set a budget and constraints
+5. Run planning and optimization logic
+6. Compare possible solutions
+7. Review the recommendation and decide
 
-- ✅ [Phase 1: Foundation](docs/phases/PHASE_1_COMPLETE.md)
-- ✅ [Phase 2: Village + Map](docs/phases/PHASE_2_COMPLETE.md)
-- ✅ [Phase 3: Spatial Analysis](docs/phases/PHASE_3_COMPLETE.md)
-- ✅ [Phase 4: Scenario Builder](docs/phases/PHASE_4_COMPLETE.md)
-- ✅ [Phase 5: Constraint Engine](docs/phases/PHASE_5_COMPLETE.md)
-- ✅ [Phase 6: Candidate Generation](docs/phases/PHASE_6_COMPLETE.md)
-- ✅ [Phase 7: Budget Optimization](docs/phases/PHASE_7_COMPLETE.md)
-- ✅ [Phase 8: End-to-End Integration](docs/phases/PHASE_8_COMPLETE.md)
-- ⏭️ [Phase 9: Data Manager](docs/phases/PHASE_9_SPECIFICATION.md) (Specified, deferred)
-- ✅ [Phase 10: AI Integration](docs/phases/PHASE_10_COMPLETE.md)
-- ⏭️ [Phase 11: Machine Learning](docs/phases/PHASE_11_SPECIFICATION.md) (Specified, optional)
-- ✅ [Phase 12: Demo + Polish](docs/phases/PHASE_12_COMPLETE.md) ← **FINAL PHASE**
+The main idea is simple: test ideas before building anything.
 
-**See**: [docs/phases/README.md](docs/phases/README.md) for complete phase index
-- Google OR-Tools (optimization)
-- PostgreSQL + PostGIS
+---
 
-### AI
-- Provider-agnostic architecture
-- Initial provider: Google Gemini
-- Used for intent parsing and explanation generation (NOT calculations)
+## What is included in the project
 
-## Project Status
+This repository includes:
 
-**Current Phase**: Phase 1 - Foundation
+- a frontend app for the map and dashboard,
+- a backend API for analysis and optimization,
+- sample village data for demo use,
+- GIS and planning logic for coverage analysis,
+- optional AI features for explanations and natural language queries.
 
-## Quick Start
+---
 
-### Prerequisites
-- Node.js 18+
-- Python 3.10+
-- PostgreSQL with PostGIS extension (optional for prototype mode)
+## Quick start
 
-### Setup
+### 1. Clone the project
 
 ```bash
-# Clone repository
-git clone <repository-url>
+git clone https://github.com/yourusername/plangram.git
 cd plangram
-
-# Backend setup
-cd backend
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-pip install -r requirements.txt
-
-# Frontend setup
-cd ../frontend
-npm install
-
-# Configure environment
-cp .env.example .env
-# Edit .env with your configuration
-
-# Run backend
-cd backend
-uvicorn app.main:app --reload
-
-# Run frontend (in another terminal)
-cd frontend
-npm run dev
 ```
 
-## Data Sources
+### 2. Set up environment file
 
-PlanGram supports multiple data source modes:
+```bash
+cp .env.example .env
+```
 
-- **Prototype Mode**: Representative synthetic data for demonstration
-- **Uploaded Mode**: User-uploaded GIS files
-- **Official Mode**: Future integration with official SVAMITVA datasets
+If you want AI-based explanations, add your API key in the environment file. If not, the demo version can still run without it.
 
-### Data Transparency
+### 3. Start the app with Docker
 
-All data sources are clearly labeled:
-- ✅ **REAL_OFFICIAL**: Verified government data
-- ✅ **OPEN_PUBLIC**: Publicly available datasets
-- ⚠️ **ESTIMATED**: Calculated/estimated values
-- ⚠️ **SYNTHETIC**: Representative prototype data
+```bash
+docker-compose up --build
+```
 
-**IMPORTANT**: Prototype data is synthetic and representative. It is NOT official SVAMITVA data. The system is designed to work with real data once authorized access is obtained.
+This will start the backend and frontend together.
 
-## Documentation
+### 4. Open the app
 
-- [Architecture](docs/ARCHITECTURE.md)
-- [Data Schema](docs/DATA_SCHEMA.md)
-- [Data Sources](docs/DATA_SOURCES.md)
-- [Data Ingestion](docs/DATA_INGESTION.md)
-- [AI Methodology](docs/AI_METHODOLOGY.md)
-- [Optimization](docs/OPTIMIZATION.md)
-- [Demo Guide](docs/DEMO_GUIDE.md)
-- [Assumptions](docs/ASSUMPTIONS.md)
+- Frontend: http://localhost
+- API docs: http://localhost:8000/api/docs
 
-## Development Phases
+You should now see the project running with demo village data.
 
-- [x] **Phase 1**: Foundation (current)
-- [ ] **Phase 2**: Village + Map
-- [ ] **Phase 3**: Spatial Analysis
-- [ ] **Phase 4**: Scenario Builder
-- [ ] **Phase 5**: Constraint Engine
-- [ ] **Phase 6**: Candidate Location Engine
-- [ ] **Phase 7**: Budget Optimization
-- [ ] **Phase 8**: Scenario Comparison
-- [ ] **Phase 9**: Data Manager
-- [ ] **Phase 10**: AI Integration
-- [ ] **Phase 11**: Optional ML
-- [ ] **Phase 12**: Demo + Polish
+---
 
-## Hero Use Case
+## Default demo data
 
-**Optimal Water Facility Placement with Budget Constraints**
+The project already includes sample village data so you can explore it immediately without needing external files.
 
-1. Select village
-2. View current water access metrics
-3. Identify underserved areas
-4. Generate candidate facility locations
-5. Manually place/adjust proposed facility
-6. Enter budget (e.g., ₹10,00,000)
-7. Generate multiple feasible development plans
-8. Compare plans by cost, coverage, equity
-9. Review AI-explained recommendation
-10. Make informed decision
+This is useful for:
+
+- learning how the tool works,
+- testing scenarios,
+- showing results to stakeholders,
+- and evaluating the planning flow before using real data.
+
+---
+
+## How to use the app
+
+After opening the app, you can:
+
+1. choose a village,
+2. view the map and current coverage,
+3. identify underserved areas,
+4. adjust planning parameters and budget,
+5. run optimization,
+6. compare multiple options,
+7. review the suggested plan.
+
+This is a decision-support tool, which means it helps you understand trade-offs and makes recommendation easier, but final decisions still belong to planners or officials.
+
+---
+
+## Project structure
+
+A simple overview of the workspace:
+
+- [backend](backend) — API and planning logic
+- [frontend](frontend) — web interface
+- [data](data) — sample GIS and village data
+- [docs](docs) — project documentation
+- [scripts](scripts) — helper scripts and tests
+- [docker-compose.yml](docker-compose.yml) — startup configuration
+
+---
+
+## Need more details?
+
+For deeper technical details, see:
+
+- [QUICK_START.md](QUICK_START.md)
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+- [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md)
+- [docs/USER_GUIDE.md](docs/USER_GUIDE.md)
+
+---
+
+## Important note
+
+This project is a planning prototype. It is designed to support decisions, not replace official planning authority. The included demo data is for learning and demonstration purposes.
+
+---
 
 ## License
 
-[License TBD]
-
-## Contributing
-
-[Contributing guidelines TBD]
-
-## Contact
-
-[Contact information TBD]
-
----
-
-**Disclaimer**: This is a decision-support prototype. All synthetic data, cost estimates, and recommendations are for planning purposes only. Final infrastructure decisions remain with authorized officials.
+This project is currently provided as a local development project. License details may be added later.
