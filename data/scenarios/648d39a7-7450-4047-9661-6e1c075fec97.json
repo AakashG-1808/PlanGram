@@ -1,0 +1,22 @@
+{
+  "scenario_id": "648d39a7-7450-4047-9661-6e1c075fec97",
+  "name": "Simulation_1787589238779",
+  "description": "Proposed Facility Simulation",
+  "village_id": "village_01",
+  "projects": [
+    {
+      "project_id": "619eeb13-392f-46f7-a524-1114c2a81a25",
+      "infrastructure_type": "water_facility",
+      "location": [
+        77.6882711863393,
+        12.692243630572875
+      ],
+      "name": "Proposed Water Facility",
+      "cost": 180000,
+      "status": "proposed"
+    }
+  ],
+  "total_cost": 180000,
+  "created_at": "2026-08-24T16:33:58.785847Z",
+  "updated_at": "2026-08-24T16:33:58.812063Z"
+}

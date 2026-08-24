@@ -7,7 +7,6 @@ interface CoverageChartProps {
 
 export default function CoverageChart({ coverage, title = 'Coverage Analysis' }: CoverageChartProps) {
   const servedPercentage = coverage.coverage_percentage;
-  const underservedPercentage = 100 - servedPercentage;
 
   return (
     <div className="bg-white rounded-lg shadow p-6">

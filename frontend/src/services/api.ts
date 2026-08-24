@@ -3,7 +3,7 @@ import type { Village, VillageLayers, VillageBounds } from '../types/village';
 import type { VillageMetrics, InfrastructureAnalysis } from '../types/analysis';
 import type { Scenario, ScenarioSimulation, ScenarioComparison } from '../types/scenario';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
+const API_BASE_URL = (import.meta as unknown as { env: Record<string, string> }).env?.VITE_API_BASE_URL || '/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,

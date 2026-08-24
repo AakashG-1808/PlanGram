@@ -43,4 +43,9 @@ export interface LayerVisibility {
   roads: boolean;
   water_bodies: boolean;
   facilities: boolean;
+  coverage?: boolean;
+  underserved?: boolean;
+  candidates?: boolean;
+  proposed?: boolean;
 }
+
