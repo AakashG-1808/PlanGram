@@ -2,9 +2,35 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { villageApi } from '../../services/api';
-import type { Village, LayerVisibility } from '../../types/village';
+import type { Village, LayerVisibility, ProposedFacility } from '../../types/village';
 import type { Candidate } from '../../types/optimization';
 import type { VillageMetrics } from '../../types/analysis';
+import type { PlanningObjective } from '../planning/PlanningSidebar';
+
+/** Icon and color config for each facility type */
+const FACILITY_TYPE_CONFIG: Record<string, { icon: string; color: string; bgColor: string; label: string }> = {
+  water:       { icon: '💧', color: '#0ea5e9', bgColor: '#0c4a6e', label: 'Water Point' },
+  education:   { icon: '🎓', color: '#a855f7', bgColor: '#581c87', label: 'Education' },
+  health:      { icon: '🏥', color: '#ef4444', bgColor: '#7f1d1d', label: 'Healthcare' },
+  healthcare:  { icon: '🏥', color: '#ef4444', bgColor: '#7f1d1d', label: 'Healthcare' },
+  sanitation:  { icon: '🚽', color: '#f59e0b', bgColor: '#78350f', label: 'Sanitation' },
+  waste:       { icon: '♻️', color: '#22c55e', bgColor: '#14532d', label: 'Waste Mgmt' },
+  connectivity:{ icon: '🛣️', color: '#f97316', bgColor: '#7c2d12', label: 'Connectivity' },
+  bus_stop:    { icon: '🚏', color: '#f97316', bgColor: '#7c2d12', label: 'Bus Stop' },
+  public_toilet:{ icon: '🚻', color: '#eab308', bgColor: '#713f12', label: 'Public Toilet' },
+};
+
+/** Get the icon for the active planning objective (used for proposed marker) */
+const OBJECTIVE_ICON: Record<PlanningObjective, string> = {
+  water: '💧',
+  healthcare: '🏥',
+  education: '🎓',
+  sanitation: '🚽',
+  waste: '♻️',
+  connectivity: '🛣️',
+};
+
+const DEFAULT_FACILITY_CONFIG = { icon: '📍', color: '#10b981', bgColor: '#064e3b', label: 'Facility' };
 
 interface VillageMapProps {
   village: Village;
@@ -12,9 +38,12 @@ interface VillageMapProps {
   threshold: number;
   candidates: Candidate[];
   onSelectCandidate?: (candidate: Candidate) => void;
-  proposedLocation: [number, number] | null;
-  onUpdateProposedLocation?: (loc: [number, number]) => void;
+  proposedFacilities?: ProposedFacility[];
+  onAddProposedFacility?: (loc: [number, number]) => void;
+  onUpdateProposedFacilityLocation?: (id: string, loc: [number, number]) => void;
+  onDeleteProposedFacility?: (id: string) => void;
   isPlacingProposed?: boolean;
+  activeObjective?: PlanningObjective;
   metrics: VillageMetrics | null;
   isLeftSidebarOpen?: boolean;
   isRightPanelOpen?: boolean;
@@ -48,9 +77,12 @@ export default function VillageMap({
   threshold,
   candidates,
   onSelectCandidate,
-  proposedLocation,
-  onUpdateProposedLocation,
+  proposedFacilities = [],
+  onAddProposedFacility,
+  onUpdateProposedFacilityLocation,
+  onDeleteProposedFacility,
   isPlacingProposed,
+  activeObjective = 'water',
   metrics,
   isLeftSidebarOpen,
   isRightPanelOpen,
@@ -63,27 +95,33 @@ export default function VillageMap({
 
   // Markers refs
   const candidateMarkersRef = useRef<maplibregl.Marker[]>([]);
-  const proposedMarkerRef = useRef<maplibregl.Marker | null>(null);
+  const proposedMarkersRef = useRef<maplibregl.Marker[]>([]);
+  const facilityMarkersRef = useRef<maplibregl.Marker[]>([]);
   const existingFacilitiesDataRef = useRef<GeoJSON.FeatureCollection | null>(null);
   const boundsRef = useRef<{ west: number; south: number; east: number; north: number; center: [number, number] } | null>(null);
   const popupRef = useRef<maplibregl.Popup | null>(null);
 
   // *** CRITICAL: Refs to keep callback-accessed props always current ***
-  // This prevents stale closures in map event handlers
   const isPlacingProposedRef = useRef(isPlacingProposed);
-  const onUpdateProposedLocationRef = useRef(onUpdateProposedLocation);
+  const onAddProposedFacilityRef = useRef(onAddProposedFacility);
+  const onUpdateProposedFacilityLocationRef = useRef(onUpdateProposedFacilityLocation);
+  const onDeleteProposedFacilityRef = useRef(onDeleteProposedFacility);
   const layerVisibilityRef = useRef(layerVisibility);
   const thresholdRef = useRef(threshold);
-  const proposedLocationRef = useRef(proposedLocation);
+  const proposedFacilitiesRef = useRef(proposedFacilities);
   const metricsRef = useRef(metrics);
+  const activeObjectiveRef = useRef(activeObjective);
 
   // Keep refs in sync with props on every render
   useEffect(() => { isPlacingProposedRef.current = isPlacingProposed; });
-  useEffect(() => { onUpdateProposedLocationRef.current = onUpdateProposedLocation; });
+  useEffect(() => { onAddProposedFacilityRef.current = onAddProposedFacility; });
+  useEffect(() => { onUpdateProposedFacilityLocationRef.current = onUpdateProposedFacilityLocation; });
+  useEffect(() => { onDeleteProposedFacilityRef.current = onDeleteProposedFacility; });
   useEffect(() => { layerVisibilityRef.current = layerVisibility; });
   useEffect(() => { thresholdRef.current = threshold; });
-  useEffect(() => { proposedLocationRef.current = proposedLocation; });
+  useEffect(() => { proposedFacilitiesRef.current = proposedFacilities; });
   useEffect(() => { metricsRef.current = metrics; });
+  useEffect(() => { activeObjectiveRef.current = activeObjective; });
 
   // Helper to safely check if a layer exists
   const safeSetVisibility = useCallback((mapInst: maplibregl.Map, layerId: string, visible: boolean) => {
@@ -103,9 +141,6 @@ export default function VillageMap({
       'coverage-buffers-fill',
       'underserved-clusters-line',
       'underserved-clusters-fill',
-      'facilities-labels',
-      'facilities-glow',
-      'facilities',
       'buildings-outline',
       'buildings',
       'water_bodies',
@@ -126,7 +161,6 @@ export default function VillageMap({
     const sourceIds = [
       'coverage-buffers',
       'underserved-clusters',
-      'facilities',
       'buildings',
       'water_bodies',
       'parcels',
@@ -177,6 +211,7 @@ export default function VillageMap({
                   'https://c.tile.openstreetmap.org/{z}/{x}/{y}.png',
                 ],
                 tileSize: 256,
+                maxzoom: 19,
                 attribution: '© OpenStreetMap contributors | PlanGram Spatial',
               },
             },
@@ -204,8 +239,8 @@ export default function VillageMap({
 
         // Click handler reads from refs so it always has current values
         newMap.on('click', (e) => {
-          if (isPlacingProposedRef.current && onUpdateProposedLocationRef.current) {
-            onUpdateProposedLocationRef.current([e.lngLat.lng, e.lngLat.lat]);
+          if (isPlacingProposedRef.current && onAddProposedFacilityRef.current) {
+            onAddProposedFacilityRef.current([e.lngLat.lng, e.lngLat.lat]);
           }
         });
 
@@ -248,7 +283,10 @@ export default function VillageMap({
       isCancelled = true;
       candidateMarkersRef.current.forEach((m) => m.remove());
       candidateMarkersRef.current = [];
-      if (proposedMarkerRef.current) { proposedMarkerRef.current.remove(); proposedMarkerRef.current = null; }
+      facilityMarkersRef.current.forEach((m) => m.remove());
+      facilityMarkersRef.current = [];
+      proposedMarkersRef.current.forEach((m) => m.remove());
+      proposedMarkersRef.current = [];
       if (popupRef.current) { popupRef.current.remove(); popupRef.current = null; }
       if (map.current) { map.current.remove(); map.current = null; }
       setMapReady(false);
@@ -273,6 +311,9 @@ export default function VillageMap({
 
         removeCustomLayers(map.current!);
         existingFacilitiesDataRef.current = null;
+        // Clear facility HTML markers
+        facilityMarkersRef.current.forEach((m) => m.remove());
+        facilityMarkersRef.current = [];
 
         await loadVillageLayersForMap(map.current!, village.id);
         rebuildCoverageBuffers(map.current!);
@@ -309,10 +350,10 @@ export default function VillageMap({
     safeSetVisibility(m, 'buildings', !!layerVisibility.buildings);
     safeSetVisibility(m, 'buildings-outline', !!layerVisibility.buildings);
 
-    // Facilities
-    safeSetVisibility(m, 'facilities', !!layerVisibility.facilities);
-    safeSetVisibility(m, 'facilities-glow', !!layerVisibility.facilities);
-    safeSetVisibility(m, 'facilities-labels', !!layerVisibility.facilities);
+    // Facilities (HTML markers — toggle display style)
+    facilityMarkersRef.current.forEach((marker) => {
+      marker.getElement().style.display = layerVisibility.facilities ? '' : 'none';
+    });
 
     // Coverage buffers
     safeSetVisibility(m, 'coverage-buffers-fill', !!layerVisibility.coverage);
@@ -330,12 +371,12 @@ export default function VillageMap({
   }, [layerVisibility, mapReady, safeSetVisibility]);
 
   // =====================================================================
-  // 4. COVERAGE BUFFERS: rebuild when threshold/proposedLocation changes
+  // 4. COVERAGE BUFFERS: rebuild when threshold/proposedFacilities changes
   // =====================================================================
   useEffect(() => {
     if (!map.current || !mapReady) return;
     rebuildCoverageBuffers(map.current);
-  }, [threshold, proposedLocation, mapReady]);
+  }, [threshold, proposedFacilities, mapReady]);
 
   // =====================================================================
   // 5. UNDERSERVED CLUSTERS: rebuild when metrics change
@@ -385,46 +426,72 @@ export default function VillageMap({
   }, [candidates, layerVisibility.candidates, onSelectCandidate, mapReady]);
 
   // =====================================================================
-  // 7. PROPOSED FACILITY MARKER (draggable)
+  // 7. PROPOSED FACILITY MARKERS (draggable, multi-facility support)
   // =====================================================================
   useEffect(() => {
-    if (proposedMarkerRef.current) {
-      proposedMarkerRef.current.remove();
-      proposedMarkerRef.current = null;
-    }
+    proposedMarkersRef.current.forEach((m) => m.remove());
+    proposedMarkersRef.current = [];
 
-    if (!map.current || !mapReady || !proposedLocation || layerVisibility.proposed === false) return;
+    if (!map.current || !mapReady || layerVisibility.proposed === false || proposedFacilities.length === 0) return;
 
-    const el = document.createElement('div');
-    el.className = 'relative flex items-center justify-center cursor-move z-30';
-    el.innerHTML = `
-      <div class="absolute w-10 h-10 rounded-full bg-blue-500 animate-pulse-ring"></div>
-      <div class="w-9 h-9 rounded-full bg-blue-600 border-2 border-white shadow-2xl flex items-center justify-center text-white text-base font-bold z-10">
-        📍
-      </div>
-    `;
+    proposedFacilities.forEach((fac) => {
+      const objectiveIcon = OBJECTIVE_ICON[fac.objective] || '📍';
+      const objectiveLabel = fac.objective.charAt(0).toUpperCase() + fac.objective.slice(1);
 
-    const popup = new maplibregl.Popup({ offset: 18 }).setHTML(
-      `<div class="text-xs font-sans p-1">
-        <div class="font-bold text-blue-900 text-sm">Proposed Water Facility</div>
-        <div class="text-slate-600 text-[11px] mt-1">Drag to reposition & re-simulate coverage</div>
-      </div>`
-    );
+      const el = document.createElement('div');
+      el.className = 'relative flex items-center justify-center cursor-move z-30 group';
+      el.innerHTML = `
+        <div class="absolute w-12 h-12 rounded-full bg-blue-500 opacity-40" style="animation: pulse 2s cubic-bezier(0.4,0,0.6,1) infinite;"></div>
+        <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#2563eb,#1d4ed8);border:3px solid #fff;box-shadow:0 4px 20px rgba(37,99,235,0.6);display:flex;align-items:center;justify-content:center;position:relative;z-index:10;user-select:none;">
+          <span style="font-size:17px;line-height:1;display:inline-flex;align-items:center;justify-content:center;transform:translateY(0.5px);">${objectiveIcon}</span>
+        </div>
+      `;
 
-    const marker = new maplibregl.Marker({ element: el, draggable: true })
-      .setLngLat(proposedLocation)
-      .setPopup(popup)
-      .addTo(map.current!);
+      const popupContainer = document.createElement('div');
+      popupContainer.className = 'text-xs font-sans p-1 space-y-1.5';
+      popupContainer.style.minWidth = '160px';
+      popupContainer.innerHTML = `
+        <div class="font-bold text-slate-900 text-sm flex items-center gap-1.5">
+          <span>${objectiveIcon}</span>
+          <span>${fac.name}</span>
+        </div>
+        <div class="text-slate-600 text-[11px]">Type: <strong>${objectiveLabel}</strong></div>
+        <div class="text-slate-500 text-[10px] font-mono">${fac.location[1].toFixed(5)}, ${fac.location[0].toFixed(5)}</div>
+        <div class="text-[10px] text-blue-700 font-semibold bg-blue-50 p-1 rounded text-center">
+          ✋ Drag to reposition
+        </div>
+      `;
 
-    marker.on('dragend', () => {
-      const lngLat = marker.getLngLat();
-      if (onUpdateProposedLocationRef.current) {
-        onUpdateProposedLocationRef.current([lngLat.lng, lngLat.lat]);
-      }
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className =
+        'w-full py-1 px-2 rounded bg-red-500 hover:bg-red-600 active:bg-red-700 text-white font-bold text-[11px] flex items-center justify-center gap-1.5 transition-colors shadow-sm cursor-pointer';
+      deleteBtn.innerHTML = '<span>🗑️</span><span>Delete Facility</span>';
+      deleteBtn.onclick = (e) => {
+        e.stopPropagation();
+        if (onDeleteProposedFacilityRef.current) {
+          onDeleteProposedFacilityRef.current(fac.id);
+        }
+      };
+      popupContainer.appendChild(deleteBtn);
+
+      const popup = new maplibregl.Popup({ offset: 18, closeButton: true })
+        .setDOMContent(popupContainer);
+
+      const marker = new maplibregl.Marker({ element: el, draggable: true })
+        .setLngLat(fac.location)
+        .setPopup(popup)
+        .addTo(map.current!);
+
+      marker.on('dragend', () => {
+        const lngLat = marker.getLngLat();
+        if (onUpdateProposedFacilityLocationRef.current) {
+          onUpdateProposedFacilityLocationRef.current(fac.id, [lngLat.lng, lngLat.lat]);
+        }
+      });
+
+      proposedMarkersRef.current.push(marker);
     });
-
-    proposedMarkerRef.current = marker;
-  }, [proposedLocation, layerVisibility.proposed, mapReady]);
+  }, [proposedFacilities, layerVisibility.proposed, mapReady]);
 
   // =====================================================================
   // 8. RESIZE ON PANEL COLLAPSE/EXPAND
@@ -458,17 +525,17 @@ export default function VillageMap({
           mapInstance.addLayer({
             id: 'boundary-fill', type: 'fill', source: 'boundary',
             layout: { visibility: vis.boundary ? 'visible' : 'none' },
-            paint: { 'fill-color': '#2563eb', 'fill-opacity': 0.12 },
+            paint: { 'fill-color': '#2563eb', 'fill-opacity': 0.05 },
           });
           mapInstance.addLayer({
             id: 'boundary-casing', type: 'line', source: 'boundary',
             layout: { visibility: vis.boundary ? 'visible' : 'none' },
-            paint: { 'line-color': '#ffffff', 'line-width': 6, 'line-opacity': 0.9 },
+            paint: { 'line-color': '#ffffff', 'line-width': 5, 'line-opacity': 0.8 },
           });
           mapInstance.addLayer({
             id: 'boundary-line', type: 'line', source: 'boundary',
             layout: { visibility: vis.boundary ? 'visible' : 'none' },
-            paint: { 'line-color': '#1d4ed8', 'line-width': 3.5, 'line-dasharray': [4, 2] },
+            paint: { 'line-color': '#1d4ed8', 'line-width': 2.5, 'line-dasharray': [4, 2] },
           });
         } else if (layerName === 'parcels') {
           mapInstance.addLayer({
@@ -515,25 +582,8 @@ export default function VillageMap({
             popup.remove();
           });
         } else if (layerName === 'facilities') {
-          mapInstance.addLayer({
-            id: 'facilities-glow', type: 'circle', source: 'facilities',
-            layout: { visibility: vis.facilities ? 'visible' : 'none' },
-            paint: { 'circle-radius': 14, 'circle-color': '#10b981', 'circle-opacity': 0.45 },
-          });
-          mapInstance.addLayer({
-            id: 'facilities', type: 'circle', source: 'facilities',
-            layout: { visibility: vis.facilities ? 'visible' : 'none' },
-            paint: { 'circle-radius': 8, 'circle-color': '#059669', 'circle-stroke-width': 3, 'circle-stroke-color': '#ffffff' },
-          });
-          mapInstance.addLayer({
-            id: 'facilities-labels', type: 'symbol', source: 'facilities',
-            layout: {
-              'text-field': ['get', 'name'], 'text-size': 12, 'text-offset': [0, 1.5],
-              'text-anchor': 'top', 'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'],
-              visibility: vis.facilities ? 'visible' : 'none',
-            },
-            paint: { 'text-color': '#064e3b', 'text-halo-color': '#ffffff', 'text-halo-width': 3 },
-          });
+          // Create individual HTML markers for each facility with type-specific icons
+          buildFacilityMarkers(mapInstance, geojson, vis.facilities !== false);
         }
       } catch (layerErr) {
         console.warn(`Layer ${layerName} skipped:`, layerErr);
@@ -542,12 +592,74 @@ export default function VillageMap({
   };
 
   // =====================================================================
-  // HELPER: Rebuild coverage buffer polygons
+  // HELPER: Build facility markers with type-specific icons
+  // =====================================================================
+  const buildFacilityMarkers = (
+    mapInstance: maplibregl.Map,
+    geojson: GeoJSON.FeatureCollection,
+    visible: boolean
+  ) => {
+    // Clear existing facility markers
+    facilityMarkersRef.current.forEach((m) => m.remove());
+    facilityMarkersRef.current = [];
+
+    for (const feature of geojson.features) {
+      if (feature.geometry.type !== 'Point') continue;
+
+      const coords = (feature.geometry as GeoJSON.Point).coordinates as [number, number];
+      const props = feature.properties || {};
+      const facilityType = props.facility_type || 'unknown';
+      const config = FACILITY_TYPE_CONFIG[facilityType] || DEFAULT_FACILITY_CONFIG;
+
+      const el = document.createElement('div');
+      el.style.cssText = `
+        width: 32px; height: 32px; border-radius: 50%;
+        background: ${config.bgColor};
+        border: 2.5px solid ${config.color};
+        box-shadow: 0 2px 8px ${config.color}44, 0 0 0 3px ${config.color}22;
+        display: ${visible ? 'flex' : 'none'};
+        align-items: center; justify-content: center;
+        cursor: pointer; user-select: none;
+        transition: box-shadow 0.2s, border-color 0.2s;
+      `;
+      el.innerHTML = `<span style="display:inline-flex;align-items:center;justify-content:center;font-size:15px;line-height:1;width:100%;height:100%;margin:0;padding:0;transform:translateY(0.5px);">${config.icon}</span>`;
+      el.title = `${props.name || config.label} (${config.label})`;
+
+      el.addEventListener('mouseenter', () => {
+        el.style.boxShadow = `0 0 12px 4px ${config.color}88, 0 0 0 4px ${config.color}44`;
+        el.style.borderColor = '#ffffff';
+      });
+      el.addEventListener('mouseleave', () => {
+        el.style.boxShadow = `0 2px 8px ${config.color}44, 0 0 0 3px ${config.color}22`;
+        el.style.borderColor = config.color;
+      });
+
+      const popup = new maplibregl.Popup({ offset: 14, closeButton: false }).setHTML(
+        `<div class="text-xs font-sans p-1.5" style="min-width: 140px;">
+          <div class="font-bold text-sm" style="color: ${config.bgColor};">${config.icon} ${props.name || 'Facility'}</div>
+          <div style="color: #475569; margin-top: 4px;">Type: <strong>${config.label}</strong></div>
+          ${props.capacity ? `<div style="color: #475569;">Capacity: <strong>${props.capacity}</strong></div>` : ''}
+          ${props.year_established ? `<div style="color: #64748b;">Est. ${props.year_established}</div>` : ''}
+          ${props.status ? `<div style="color: #059669; font-weight: 600; margin-top: 2px;">● ${props.status.charAt(0).toUpperCase() + props.status.slice(1)}</div>` : ''}
+        </div>`
+      );
+
+      const marker = new maplibregl.Marker({ element: el })
+        .setLngLat(coords)
+        .setPopup(popup)
+        .addTo(mapInstance);
+
+      facilityMarkersRef.current.push(marker);
+    }
+  };
+
+  // =====================================================================
+  // HELPER: Rebuild coverage buffer polygons (for existing & all proposed)
   // =====================================================================
   const rebuildCoverageBuffers = (mapInstance: maplibregl.Map) => {
     const features: GeoJSON.Feature<GeoJSON.Polygon>[] = [];
     const currentThreshold = thresholdRef.current;
-    const currentProposed = proposedLocationRef.current;
+    const currentProposed = proposedFacilitiesRef.current;
     const vis = layerVisibilityRef.current;
 
     if (existingFacilitiesDataRef.current?.features) {
@@ -562,11 +674,13 @@ export default function VillageMap({
       }
     }
 
-    if (currentProposed) {
-      features.push({
-        type: 'Feature', properties: { type: 'proposed' },
-        geometry: { type: 'Polygon', coordinates: [createGeoJSONCircle(currentProposed, currentThreshold)] },
-      });
+    if (currentProposed && currentProposed.length > 0) {
+      for (const fac of currentProposed) {
+        features.push({
+          type: 'Feature', properties: { type: 'proposed', objective: fac.objective },
+          geometry: { type: 'Polygon', coordinates: [createGeoJSONCircle(fac.location, currentThreshold)] },
+        });
+      }
     }
 
     const geojson: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features };
@@ -575,22 +689,46 @@ export default function VillageMap({
       (mapInstance.getSource('coverage-buffers') as maplibregl.GeoJSONSource).setData(geojson);
     } else {
       mapInstance.addSource('coverage-buffers', { type: 'geojson', data: geojson });
-      mapInstance.addLayer({
-        id: 'coverage-buffers-fill', type: 'fill', source: 'coverage-buffers',
-        layout: { visibility: vis.coverage ? 'visible' : 'none' },
-        paint: {
-          'fill-color': ['case', ['==', ['get', 'type'], 'proposed'], '#2563eb', '#10b981'],
-          'fill-opacity': 0.28,
+      // Insert fill layer below buildings if buildings layer exists
+      const beforeLayer = mapInstance.getLayer('buildings') ? 'buildings' : undefined;
+      mapInstance.addLayer(
+        {
+          id: 'coverage-buffers-fill',
+          type: 'fill',
+          source: 'coverage-buffers',
+          layout: { visibility: vis.coverage ? 'visible' : 'none' },
+          paint: {
+            'fill-color': ['case', ['==', ['get', 'type'], 'proposed'], '#2563eb', '#10b981'],
+            'fill-opacity': [
+              'interpolate',
+              ['linear'],
+              ['zoom'],
+              13,
+              0.22,
+              15.5,
+              0.12,
+              17.5,
+              0.05,
+            ],
+          },
         },
-      });
-      mapInstance.addLayer({
-        id: 'coverage-buffers-line', type: 'line', source: 'coverage-buffers',
-        layout: { visibility: vis.coverage ? 'visible' : 'none' },
-        paint: {
-          'line-color': ['case', ['==', ['get', 'type'], 'proposed'], '#1d4ed8', '#047857'],
-          'line-width': 2.5, 'line-dasharray': [4, 2],
+        beforeLayer
+      );
+      mapInstance.addLayer(
+        {
+          id: 'coverage-buffers-line',
+          type: 'line',
+          source: 'coverage-buffers',
+          layout: { visibility: vis.coverage ? 'visible' : 'none' },
+          paint: {
+            'line-color': ['case', ['==', ['get', 'type'], 'proposed'], '#1d4ed8', '#047857'],
+            'line-width': 2,
+            'line-dasharray': [4, 2],
+            'line-opacity': 0.85,
+          },
         },
-      });
+        beforeLayer
+      );
     }
   };
 
@@ -620,16 +758,40 @@ export default function VillageMap({
       (mapInstance.getSource('underserved-clusters') as maplibregl.GeoJSONSource).setData(geojson);
     } else {
       mapInstance.addSource('underserved-clusters', { type: 'geojson', data: geojson });
-      mapInstance.addLayer({
-        id: 'underserved-clusters-fill', type: 'fill', source: 'underserved-clusters',
-        layout: { visibility: vis.underserved ? 'visible' : 'none' },
-        paint: { 'fill-color': '#f59e0b', 'fill-opacity': 0.28 },
-      });
-      mapInstance.addLayer({
-        id: 'underserved-clusters-line', type: 'line', source: 'underserved-clusters',
-        layout: { visibility: vis.underserved ? 'visible' : 'none' },
-        paint: { 'line-color': '#b45309', 'line-width': 2.5, 'line-dasharray': [2, 2] },
-      });
+      const beforeLayer = mapInstance.getLayer('buildings') ? 'buildings' : undefined;
+      mapInstance.addLayer(
+        {
+          id: 'underserved-clusters-fill',
+          type: 'fill',
+          source: 'underserved-clusters',
+          layout: { visibility: vis.underserved ? 'visible' : 'none' },
+          paint: {
+            'fill-color': '#f59e0b',
+            'fill-opacity': [
+              'interpolate',
+              ['linear'],
+              ['zoom'],
+              13,
+              0.22,
+              15.5,
+              0.12,
+              17.5,
+              0.05,
+            ],
+          },
+        },
+        beforeLayer
+      );
+      mapInstance.addLayer(
+        {
+          id: 'underserved-clusters-line',
+          type: 'line',
+          source: 'underserved-clusters',
+          layout: { visibility: vis.underserved ? 'visible' : 'none' },
+          paint: { 'line-color': '#b45309', 'line-width': 2, 'line-dasharray': [2, 2], 'line-opacity': 0.85 },
+        },
+        beforeLayer
+      );
     }
   };
 
@@ -688,14 +850,36 @@ export default function VillageMap({
           <span>Map Legend</span>
           <span className="text-[10px] text-slate-400 font-mono">EPSG:4326</span>
         </div>
-        <div className="flex items-center gap-2 font-medium">
-          <span className="w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-white shadow-sm"></span>
-          <span className="text-slate-100">Existing Water Facility</span>
-        </div>
-        {proposedLocation && (
+        {/* Dynamic facility type entries from existing data */}
+        {(() => {
+          const types = new Set<string>();
+          existingFacilitiesDataRef.current?.features?.forEach((f) => {
+            const t = f.properties?.facility_type;
+            if (t) types.add(t);
+          });
+          return Array.from(types).map((type) => {
+            const cfg = FACILITY_TYPE_CONFIG[type] || DEFAULT_FACILITY_CONFIG;
+            return (
+              <div key={type} className="flex items-center gap-2 font-medium">
+                <span
+                  className="w-3.5 h-3.5 rounded-full border-2 border-white shadow-sm flex items-center justify-center text-[9px]"
+                  style={{ background: cfg.bgColor, borderColor: cfg.color }}
+                >
+                  {cfg.icon}
+                </span>
+                <span className="text-slate-100">{cfg.label}</span>
+              </div>
+            );
+          });
+        })()}
+        {proposedFacilities.length > 0 && (
           <div className="flex items-center gap-2 font-medium">
-            <span className="w-3.5 h-3.5 rounded-full bg-blue-600 border-2 border-white shadow-sm animate-pulse"></span>
-            <span className="text-blue-300 font-bold">Proposed Facility</span>
+            <span className="w-3.5 h-3.5 rounded-full bg-blue-600 border border-white shadow-sm flex items-center justify-center text-[9px] animate-pulse">
+              📍
+            </span>
+            <span className="text-blue-300 font-bold">
+              Proposed ({proposedFacilities.length} {proposedFacilities.length === 1 ? 'Facility' : 'Facilities'})
+            </span>
           </div>
         )}
         {candidates.length > 0 && (

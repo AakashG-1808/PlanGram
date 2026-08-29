@@ -1,0 +1,55 @@
+{
+  "scenario_id": "25d1e684-f8b7-4229-9615-64622a0b038a",
+  "name": "MultiPlan_1787618339207",
+  "description": "Multi-Facility Scenario with 4 projects",
+  "village_id": "village_01",
+  "projects": [
+    {
+      "project_id": "0c1a60e2-6088-4008-a528-2b7e05b043e4",
+      "infrastructure_type": "water_facility",
+      "location": [
+        77.691934140846,
+        12.697718085820526
+      ],
+      "name": "Water Purification Plant #1",
+      "cost": 180000,
+      "status": "proposed"
+    },
+    {
+      "project_id": "d992a1ea-9473-41ff-b365-39d73fecceb4",
+      "infrastructure_type": "health_facility",
+      "location": [
+        77.69518378481683,
+        12.6969255424858
+      ],
+      "name": "Primary Health Centre #1",
+      "cost": 0,
+      "status": "proposed"
+    },
+    {
+      "project_id": "2fe63b49-7d5f-47e7-847f-eb6f86f3af85",
+      "infrastructure_type": "education_facility",
+      "location": [
+        77.69750066061073,
+        12.696426532451625
+      ],
+      "name": "Primary School #1",
+      "cost": 0,
+      "status": "proposed"
+    },
+    {
+      "project_id": "d113d74d-44e6-4f96-8a68-edb01bc8dd6a",
+      "infrastructure_type": "public_toilet",
+      "location": [
+        77.69220494451008,
+        12.691025420031863
+      ],
+      "name": "Public Toilet Complex #1",
+      "cost": 120000,
+      "status": "proposed"
+    }
+  ],
+  "total_cost": 300000,
+  "created_at": "2026-08-25T00:38:59.216703Z",
+  "updated_at": "2026-08-25T00:38:59.446154Z"
+}

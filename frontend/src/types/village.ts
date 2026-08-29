@@ -49,3 +49,23 @@ export interface LayerVisibility {
   proposed?: boolean;
 }
 
+export interface ProposedFacility {
+  id: string;
+  objective: 'water' | 'healthcare' | 'education' | 'sanitation' | 'waste' | 'connectivity';
+  infrastructure_type: string;
+  name: string;
+  location: [number, number]; // [lng, lat]
+  cost?: number;
+}
+
+export interface ExistingFacility {
+  id: string;
+  name: string;
+  facility_type: string;
+  status: string;
+  capacity?: number;
+  year_established?: number;
+  location: [number, number]; // [lng, lat]
+}
+
+

@@ -1,0 +1,33 @@
+{
+  "scenario_id": "8bea9fb6-b972-4f86-b62e-a6b643c03fff",
+  "name": "MultiPlan_1787619138719",
+  "description": "Multi-Facility Scenario with 2 projects",
+  "village_id": "village_01",
+  "projects": [
+    {
+      "project_id": "4de9394a-d086-4201-becd-517974c906f4",
+      "infrastructure_type": "health_facility",
+      "location": [
+        77.69199050104208,
+        12.691197958433477
+      ],
+      "name": "Primary Health Centre #1",
+      "cost": 0,
+      "status": "proposed"
+    },
+    {
+      "project_id": "281ddb20-5bc6-44d4-9d80-b1a87e3e7b58",
+      "infrastructure_type": "water_facility",
+      "location": [
+        77.70501916622067,
+        12.703408997337391
+      ],
+      "name": "Water Purification Plant #1",
+      "cost": 180000,
+      "status": "proposed"
+    }
+  ],
+  "total_cost": 180000,
+  "created_at": "2026-08-25T00:52:18.727672Z",
+  "updated_at": "2026-08-25T00:52:18.760972Z"
+}

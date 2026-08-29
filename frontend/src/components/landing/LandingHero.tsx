@@ -22,10 +22,6 @@ export default function LandingHero({ onStartDemo, onOpenUpload, onOpenCatalog }
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-xl font-bold tracking-tight text-white">PlanGram</span>
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1.5 animate-pulse"></span>
-                  Prototype Data
-                </span>
               </div>
               <p className="text-xs text-slate-400 font-medium">Spatial Decision Support Platform</p>
             </div>

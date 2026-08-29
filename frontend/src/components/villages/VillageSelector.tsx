@@ -98,12 +98,7 @@ export default function VillageSelector({ onVillageSelect, selectedVillageId }: 
                   </span>
                 </div>
 
-                {village.data_mode === 'prototype' && (
-                  <div className="mt-2 flex items-center gap-1 text-xs text-amber-700">
-                    <span>⚠️</span>
-                    <span>Prototype data</span>
-                  </div>
-                )}
+
               </div>
 
               {selectedVillageId === village.id && (

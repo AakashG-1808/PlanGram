@@ -6,8 +6,8 @@ import PlanningImpactPanel from './components/planning/PlanningImpactPanel';
 import VillageMap from './components/map/VillageMap';
 import DataManagerModal from './components/datamanager/DataManagerModal';
 import { villageApi, analysisApi, candidatesApi, scenarioApi } from './services/api';
-import type { Village, LayerVisibility } from './types/village';
-import type { VillageMetrics } from './types/analysis';
+import type { Village, LayerVisibility, ProposedFacility } from './types/village';
+import type { VillageMetrics, InfrastructureAnalysis } from './types/analysis';
 import type { Candidate } from './types/optimization';
 import type { ScenarioSimulation } from './types/scenario';
 
@@ -31,12 +31,13 @@ export default function App() {
   const [threshold, setThreshold] = useState(500); // meters
 
   const [metrics, setMetrics] = useState<VillageMetrics | null>(null);
+  const [objectiveAnalysis, setObjectiveAnalysis] = useState<InfrastructureAnalysis | null>(null);
   const [loadingMetrics, setLoadingMetrics] = useState(false);
 
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [isGeneratingCandidates, setIsGeneratingCandidates] = useState(false);
 
-  const [proposedLocation, setProposedLocation] = useState<[number, number] | null>(null);
+  const [proposedFacilities, setProposedFacilities] = useState<ProposedFacility[]>([]);
   const [isPlacingProposed, setIsPlacingProposed] = useState(false);
   const [simulation, setSimulation] = useState<ScenarioSimulation | null>(null);
 
@@ -68,18 +69,25 @@ export default function App() {
     }
   };
 
-  // Load village metrics when selected village or threshold changes
+  // Load village metrics and objective analysis when selected village, threshold, or active objective changes
   useEffect(() => {
     if (selectedVillage) {
-      loadVillageMetrics(selectedVillage.id, threshold);
+      loadVillageMetrics(selectedVillage.id, threshold, activeObjective);
     }
-  }, [selectedVillage?.id, threshold]);
+  }, [selectedVillage?.id, threshold, activeObjective]);
 
-  const loadVillageMetrics = async (villageId: string, distThreshold: number) => {
+  const loadVillageMetrics = async (villageId: string, distThreshold: number, objType: string) => {
     try {
       setLoadingMetrics(true);
-      const data = await analysisApi.getVillageMetrics(villageId, distThreshold);
+      const [data, infraData] = await Promise.all([
+        analysisApi.getVillageMetrics(villageId, distThreshold),
+        analysisApi.getInfrastructureAnalysis(villageId, objType, distThreshold).catch((err) => {
+          console.warn('Infra analysis fallback:', err);
+          return null;
+        }),
+      ]);
       setMetrics(data);
+      setObjectiveAnalysis(infraData);
     } catch (err) {
       console.error('Failed to load village metrics:', err);
     } finally {
@@ -91,7 +99,7 @@ export default function App() {
   const handleSelectVillage = (village: Village) => {
     setSelectedVillage(village);
     setCandidates([]);
-    setProposedLocation(null);
+    setProposedFacilities([]);
     setSimulation(null);
     setIsPlacingProposed(false);
     setViewMode('planner');
@@ -122,8 +130,8 @@ export default function App() {
         setCandidates(res.candidates);
         setLayerVisibility((prev) => ({ ...prev, candidates: true }));
 
-        // Automatically select the rank #1 candidate as proposed location if none set
-        if (!proposedLocation && res.candidates[0]?.location) {
+        // Automatically select the rank #1 candidate as proposed facility if none set
+        if (proposedFacilities.length === 0 && res.candidates[0]?.location) {
           handleSelectCandidate(res.candidates[0]);
         }
       }
@@ -165,45 +173,96 @@ export default function App() {
     }
   };
 
-  // Select a candidate to place as proposed facility
+  // Select a candidate to pin as proposed facility
   const handleSelectCandidate = async (candidate: Candidate) => {
     const loc: [number, number] = [candidate.location[0], candidate.location[1]];
-    setProposedLocation(loc);
-    setIsPlacingProposed(false);
-    setLayerVisibility((prev) => ({ ...prev, proposed: true }));
-    await runSimulation(loc);
+    await handleAddProposedFacility(loc);
   };
 
-  // Update proposed location (dragged or clicked on map)
-  const handleUpdateProposedLocation = async (loc: [number, number]) => {
-    setProposedLocation(loc);
+  // Add a newly pinned facility on the map
+  const handleAddProposedFacility = async (loc: [number, number]) => {
+    const defaultLabels: Record<string, string> = {
+      water_facility: 'Water Purification Plant',
+      borewell: 'Community Borewell',
+      water_kiosk: 'Smart Water Kiosk',
+      health_facility: 'Primary Health Centre',
+      health_subcenter: 'Health Sub-Centre',
+      health_wellness: 'Wellness Centre',
+      education_facility: 'Primary School',
+      education_secondary: 'Secondary School',
+      education_anganwadi: 'Anganwadi Centre',
+      public_toilet: 'Public Toilet Complex',
+      sanitation_stp: 'Sewage Treatment Plant',
+      sanitation_solid_waste: 'Solid Waste Unit',
+      waste_facility: 'Waste Processing Plant',
+      waste_collection: 'Waste Collection Point',
+      waste_recycling: 'Recycling Unit',
+      bus_stop: 'Bus Transit Shelter',
+      connectivity_road: 'Road Link Point',
+      connectivity_digital: 'Digital Hub (CSC)',
+    };
+
+    const countForType = proposedFacilities.filter((f) => f.objective === activeObjective).length + 1;
+    const label = defaultLabels[selectedInfrastructure] || `${activeObjective.charAt(0).toUpperCase() + activeObjective.slice(1)} Facility`;
+
+    const newFacility: ProposedFacility = {
+      id: `prop_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+      objective: activeObjective,
+      infrastructure_type: selectedInfrastructure,
+      name: `${label} #${countForType}`,
+      location: loc,
+      cost: 250000,
+    };
+
+    const updated = [...proposedFacilities, newFacility];
+    setProposedFacilities(updated);
     setIsPlacingProposed(false);
     setLayerVisibility((prev) => ({ ...prev, proposed: true }));
-    await runSimulation(loc);
+    await runMultiSimulation(updated);
   };
 
-  // Run backend scenario simulation
-  const runSimulation = async (loc: [number, number]) => {
-    if (!selectedVillage) return;
+  // Update a specific facility location when dragged
+  const handleUpdateFacilityLocation = async (id: string, newLoc: [number, number]) => {
+    const updated = proposedFacilities.map((f) => (f.id === id ? { ...f, location: newLoc } : f));
+    setProposedFacilities(updated);
+    await runMultiSimulation(updated);
+  };
+
+  // Delete a specific facility
+  const handleDeleteProposedFacility = async (id: string) => {
+    const updated = proposedFacilities.filter((f) => f.id !== id);
+    setProposedFacilities(updated);
+    if (updated.length > 0) {
+      await runMultiSimulation(updated);
+    } else {
+      setSimulation(null);
+    }
+  };
+
+  // Clear all proposed facilities
+  const handleClearAllProposed = () => {
+    setProposedFacilities([]);
+    setSimulation(null);
+    setIsPlacingProposed(false);
+  };
+
+  // Run backend scenario simulation for all proposed facilities
+  const runMultiSimulation = async (facilities: ProposedFacility[]) => {
+    if (!selectedVillage || facilities.length === 0) return;
     try {
       const scenario = await scenarioApi.createScenario(
-        `Simulation_${Date.now()}`,
+        `MultiPlan_${Date.now()}`,
         selectedVillage.id,
-        'Proposed Facility Simulation'
+        `Multi-Facility Scenario with ${facilities.length} projects`
       );
-      await scenarioApi.addProject(scenario.scenario_id, 'water_facility', loc, 'Proposed Water Facility');
+      for (const fac of facilities) {
+        await scenarioApi.addProject(scenario.scenario_id, fac.infrastructure_type, fac.location, fac.name);
+      }
       const simResult = await scenarioApi.simulateScenario(scenario.scenario_id, threshold);
       setSimulation(simResult);
     } catch (err) {
       console.warn('Simulation API call fallback:', err);
     }
-  };
-
-  // Clear proposed facility
-  const handleClearProposed = () => {
-    setProposedLocation(null);
-    setSimulation(null);
-    setIsPlacingProposed(false);
   };
 
   // Toggle placement mode
@@ -332,11 +391,7 @@ export default function App() {
             )}
           </div>
 
-          {/* Dynamic Data Mode Badge */}
-          <span className="hidden sm:inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 mr-1.5"></span>
-            Prototype Data
-          </span>
+
         </div>
 
         {/* Top Right Action Items & Panel Quick Toggles */}
@@ -397,7 +452,18 @@ export default function App() {
             <PlanningSidebar
               village={selectedVillage}
               activeObjective={activeObjective}
-              onChangeObjective={setActiveObjective}
+              onChangeObjective={(obj) => {
+                setActiveObjective(obj);
+                const defaultInfraMap: Record<string, string> = {
+                  water: 'water_facility',
+                  healthcare: 'health_facility',
+                  education: 'education_facility',
+                  sanitation: 'public_toilet',
+                  waste: 'waste_facility',
+                  connectivity: 'bus_stop',
+                };
+                setSelectedInfrastructure(defaultInfraMap[obj] || 'water_facility');
+              }}
               selectedInfrastructure={selectedInfrastructure}
               onChangeInfrastructure={setSelectedInfrastructure}
               threshold={threshold}
@@ -408,8 +474,9 @@ export default function App() {
               isGeneratingCandidates={isGeneratingCandidates}
               candidates={candidates}
               onSelectCandidate={handleSelectCandidate}
-              proposedLocation={proposedLocation}
-              onClearProposed={handleClearProposed}
+              proposedFacilities={proposedFacilities}
+              onDeleteProposedFacility={handleDeleteProposedFacility}
+              onClearAllProposed={handleClearAllProposed}
               isPlacingProposed={isPlacingProposed}
               onTogglePlacementMode={handleTogglePlacementMode}
             />
@@ -437,9 +504,12 @@ export default function App() {
               threshold={threshold}
               candidates={candidates}
               onSelectCandidate={handleSelectCandidate}
-              proposedLocation={proposedLocation}
-              onUpdateProposedLocation={handleUpdateProposedLocation}
+              proposedFacilities={proposedFacilities}
+              onAddProposedFacility={handleAddProposedFacility}
+              onUpdateProposedFacilityLocation={handleUpdateFacilityLocation}
+              onDeleteProposedFacility={handleDeleteProposedFacility}
               isPlacingProposed={isPlacingProposed}
+              activeObjective={activeObjective}
               metrics={metrics}
               isLeftSidebarOpen={isLeftSidebarOpen}
               isRightPanelOpen={isRightPanelOpen}
@@ -470,12 +540,14 @@ export default function App() {
             <PlanningImpactPanel
               village={selectedVillage}
               metrics={metrics}
+              objectiveAnalysis={objectiveAnalysis}
+              activeObjective={activeObjective}
               simulation={simulation}
-              proposedLocation={proposedLocation}
+              proposedFacilities={proposedFacilities}
               threshold={threshold}
               loadingMetrics={loadingMetrics}
               onGenerateCandidates={handleFindBestLocations}
-              onSelectCandidate={(lat, lng) => handleUpdateProposedLocation([lng, lat])}
+              onSelectCandidate={(lat, lng) => handleAddProposedFacility([lng, lat])}
             />
           </div>
         )}

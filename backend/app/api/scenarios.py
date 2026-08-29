@@ -280,40 +280,63 @@ async def simulate_scenario(scenario_id: str, threshold: Optional[float] = 500.0
         buildings = buildings_data.get("features", [])
         existing_facilities = facilities_data.get("features", [])
         
-        # Filter for water facilities
-        existing_water = [f for f in existing_facilities if f["properties"].get("facility_type") == "water"]
+        # Map infra types
+        def normalize_infra_type(itype: str) -> str:
+            t = itype.lower().replace("_facility", "")
+            if "health" in t or "wellness" in t or "subcenter" in t:
+                return "health"
+            if "school" in t or "education" in t or "anganwadi" in t:
+                return "education"
+            if "toilet" in t or "sanitation" in t or "stp" in t:
+                return "sanitation"
+            if "waste" in t or "recycl" in t:
+                return "waste"
+            if "bus" in t or "transit" in t or "road" in t or "connect" in t:
+                return "connectivity"
+            return "water"
+
+        # Determine target sectors from projects
+        project_sectors = set(normalize_infra_type(p["infrastructure_type"]) for p in scenario["projects"])
+        if not project_sectors:
+            project_sectors = {"water"}
+
+        # Filter existing facilities matching target sectors
+        existing_matched = [
+            f for f in existing_facilities
+            if normalize_infra_type(f["properties"].get("facility_type", "")) in project_sectors
+        ]
         
-        # Calculate BEFORE metrics (existing facilities only)
-        before_metrics = calculate_facility_coverage(buildings, existing_water, threshold)
+        # Calculate BEFORE metrics (existing facilities matching sector)
+        before_metrics = calculate_facility_coverage(buildings, existing_matched, threshold)
         
         # Create proposed facilities from scenario projects
         proposed_facilities = []
         for project in scenario["projects"]:
-            if project["infrastructure_type"] == "water_facility":
-                proposed_facilities.append({
-                    "type": "Feature",
-                    "properties": {
-                        "facility_id": project["project_id"],
-                        "facility_type": "water",
-                        "name": project["name"],
-                        "status": "proposed"
-                    },
-                    "geometry": {
-                        "type": "Point",
-                        "coordinates": project["location"]
-                    }
-                })
+            norm_sec = normalize_infra_type(project["infrastructure_type"])
+            proposed_facilities.append({
+                "type": "Feature",
+                "properties": {
+                    "facility_id": project["project_id"],
+                    "facility_type": norm_sec,
+                    "name": project["name"],
+                    "status": "proposed"
+                },
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": project["location"]
+                }
+            })
         
         # Calculate AFTER metrics (existing + proposed)
-        all_facilities = existing_water + proposed_facilities
+        all_facilities = existing_matched + proposed_facilities
         after_metrics = calculate_facility_coverage(buildings, all_facilities, threshold)
         
         # Calculate improvements
         improvement = {
-            "coverage_change": after_metrics["coverage_percentage"] - before_metrics["coverage_percentage"],
+            "coverage_change": round(after_metrics["coverage_percentage"] - before_metrics["coverage_percentage"], 1),
             "households_gained": after_metrics["served_households"] - before_metrics["served_households"],
             "population_gained": after_metrics["served_population"] - before_metrics["served_population"],
-            "avg_distance_change": after_metrics["average_distance"] - before_metrics["average_distance"]
+            "avg_distance_change": round(after_metrics["average_distance"] - before_metrics["average_distance"], 1)
         }
         
         return ScenarioSimulation(

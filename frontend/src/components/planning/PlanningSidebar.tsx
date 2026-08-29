@@ -1,4 +1,4 @@
-import type { Village, LayerVisibility } from '../../types/village';
+import type { Village, LayerVisibility, ProposedFacility } from '../../types/village';
 import type { Candidate } from '../../types/optimization';
 
 export type PlanningObjective =
@@ -23,8 +23,9 @@ interface PlanningSidebarProps {
   isGeneratingCandidates: boolean;
   candidates: Candidate[];
   onSelectCandidate: (candidate: Candidate) => void;
-  proposedLocation: [number, number] | null;
-  onClearProposed: () => void;
+  proposedFacilities: ProposedFacility[];
+  onDeleteProposedFacility: (id: string) => void;
+  onClearAllProposed: () => void;
   isPlacingProposed: boolean;
   onTogglePlacementMode: () => void;
 }
@@ -37,12 +38,46 @@ const OBJECTIVES: Array<{
   statusText?: string;
 }> = [
   { id: 'water', label: 'Water Access', icon: '💧', available: true },
-  { id: 'healthcare', label: 'Healthcare', icon: '🏥', available: false, statusText: 'Phase 2' },
-  { id: 'education', label: 'Education', icon: '🎓', available: false, statusText: 'Phase 2' },
-  { id: 'sanitation', label: 'Sanitation', icon: '🚽', available: false, statusText: 'Phase 2' },
-  { id: 'waste', label: 'Waste Management', icon: '♻️', available: false, statusText: 'Phase 2' },
-  { id: 'connectivity', label: 'Connectivity', icon: '🛣️', available: false, statusText: 'Phase 2' },
+  { id: 'healthcare', label: 'Healthcare', icon: '🏥', available: true },
+  { id: 'education', label: 'Education', icon: '🎓', available: true },
+  { id: 'sanitation', label: 'Sanitation', icon: '🚽', available: true },
+  { id: 'waste', label: 'Waste Management', icon: '♻️', available: true },
+  { id: 'connectivity', label: 'Connectivity', icon: '🛣️', available: true },
 ];
+
+/** Infrastructure type options mapped to each planning objective */
+const INFRASTRUCTURE_OPTIONS: Record<PlanningObjective, Array<{ value: string; label: string }>> = {
+  water: [
+    { value: 'water_facility', label: 'Water Purification & Distribution Facility' },
+    { value: 'borewell', label: 'Community Borewell & Storage Tank' },
+    { value: 'water_kiosk', label: 'Smart Water ATM / Kiosk' },
+  ],
+  healthcare: [
+    { value: 'health_facility', label: 'Primary Health Centre (PHC)' },
+    { value: 'health_subcenter', label: 'Health Sub-Centre' },
+    { value: 'health_wellness', label: 'Ayushman Health & Wellness Centre' },
+  ],
+  education: [
+    { value: 'education_facility', label: 'Primary School' },
+    { value: 'education_secondary', label: 'Secondary School' },
+    { value: 'education_anganwadi', label: 'Anganwadi Centre' },
+  ],
+  sanitation: [
+    { value: 'public_toilet', label: 'Community / Public Toilet Complex' },
+    { value: 'sanitation_stp', label: 'Sewage Treatment Plant' },
+    { value: 'sanitation_solid_waste', label: 'Solid Waste Collection Point' },
+  ],
+  waste: [
+    { value: 'waste_facility', label: 'Waste Processing Facility' },
+    { value: 'waste_collection', label: 'Waste Collection Centre' },
+    { value: 'waste_recycling', label: 'Recycling & Segregation Unit' },
+  ],
+  connectivity: [
+    { value: 'bus_stop', label: 'Bus Stop / Transit Shelter' },
+    { value: 'connectivity_road', label: 'Road Connectivity Point' },
+    { value: 'connectivity_digital', label: 'Digital Connectivity Hub (CSC)' },
+  ],
+};
 
 const LAYER_ITEMS: Array<{
   key: keyof LayerVisibility;
@@ -76,8 +111,9 @@ export default function PlanningSidebar({
   isGeneratingCandidates,
   candidates,
   onSelectCandidate,
-  proposedLocation,
-  onClearProposed,
+  proposedFacilities,
+  onDeleteProposedFacility,
+  onClearAllProposed,
   isPlacingProposed,
   onTogglePlacementMode,
 }: PlanningSidebarProps) {
@@ -171,9 +207,11 @@ export default function PlanningSidebar({
             onChange={(e) => onChangeInfrastructure(e.target.value)}
             className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <option value="water_facility">Water Purification & Distribution Facility</option>
-            <option value="borewell">Community Borewell & Storage Tank</option>
-            <option value="water_kiosk">Smart Water ATM / Kiosk</option>
+            {INFRASTRUCTURE_OPTIONS[activeObjective].map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
           </select>
         </div>
       </div>
@@ -217,19 +255,64 @@ export default function PlanningSidebar({
             }`}
           >
             <span>📍</span>
-            <span>{isPlacingProposed ? 'Click on Map to Place Facility' : 'Place Facility on Map'}</span>
+            <span>
+              {isPlacingProposed
+                ? `Click Map to Pin ${OBJECTIVES.find(o => o.id === activeObjective)?.label || 'Facility'}`
+                : `+ Pin ${OBJECTIVES.find(o => o.id === activeObjective)?.label || 'Facility'} on Map`}
+            </span>
           </button>
-
-          {proposedLocation && (
-            <button
-              onClick={onClearProposed}
-              className="w-full py-1.5 px-3 rounded-lg bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-300 text-[11px] font-medium transition-colors flex items-center justify-center gap-1.5"
-            >
-              <span>↺</span>
-              <span>Reset Proposed Facility</span>
-            </button>
-          )}
         </div>
+
+        {/* Pinned Proposed Facilities List */}
+        {proposedFacilities.length > 0 && (
+          <div className="pt-2 border-t border-slate-800 space-y-2">
+            <div className="flex items-center justify-between text-[11px] font-semibold text-slate-300">
+              <span className="flex items-center gap-1.5">
+                <span>📌</span>
+                <span>Pinned Facilities ({proposedFacilities.length})</span>
+              </span>
+              <button
+                onClick={onClearAllProposed}
+                className="text-[10px] text-red-400 hover:text-red-300 hover:underline"
+              >
+                Clear All
+              </button>
+            </div>
+
+            <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+              {proposedFacilities.map((fac, idx) => {
+                const objMeta = OBJECTIVES.find((o) => o.id === fac.objective);
+                return (
+                  <div
+                    key={fac.id || idx}
+                    className="w-full bg-slate-800/80 border border-slate-700/80 rounded-lg p-2 flex items-center justify-between gap-2 hover:border-blue-500/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="text-sm shrink-0">{objMeta?.icon || '📍'}</span>
+                      <div className="min-w-0">
+                        <div className="text-xs font-bold text-white truncate">
+                          {fac.name}
+                        </div>
+                        <div className="text-[10px] text-slate-400">
+                          {fac.location[1].toFixed(4)}, {fac.location[0].toFixed(4)}
+                        </div>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => onDeleteProposedFacility(fac.id)}
+                      className="px-2 py-1 rounded-md bg-red-500/10 hover:bg-red-500 text-red-300 hover:text-white border border-red-500/20 hover:border-red-500 text-xs font-semibold transition-all shrink-0 flex items-center gap-1"
+                      title="Delete this facility"
+                    >
+                      <span>🗑️</span>
+                      <span className="text-[10px]">Delete</span>
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Candidate Locations List */}
         {candidates.length > 0 && (

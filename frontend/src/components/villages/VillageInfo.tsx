@@ -75,23 +75,7 @@ export default function VillageInfo({ village }: VillageInfoProps) {
           </div>
         )}
 
-        {/* Data Mode Warning */}
-        {village.data_mode === 'prototype' && (
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
-            <div className="flex items-start gap-2">
-              <span className="text-amber-600 mt-0.5">⚠️</span>
-              <div className="flex-1">
-                <div className="text-xs font-medium text-amber-900">
-                  Prototype Data
-                </div>
-                <div className="text-xs text-amber-700 mt-1">
-                  This village uses synthetic representative data for demonstration.
-                  Not official SVAMITVA data.
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+
       </div>
     </div>
   );

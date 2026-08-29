@@ -1,0 +1,22 @@
+{
+  "scenario_id": "52bf1476-1b30-4961-8cd6-60295c373c29",
+  "name": "MultiPlan_1787618104120",
+  "description": "Multi-Facility Scenario with 1 projects",
+  "village_id": "village_01",
+  "projects": [
+    {
+      "project_id": "77b82990-c39e-42da-8355-78d8081e69f8",
+      "infrastructure_type": "water_facility",
+      "location": [
+        77.691934140846,
+        12.697718085820526
+      ],
+      "name": "Water Purification Plant #1",
+      "cost": 180000,
+      "status": "proposed"
+    }
+  ],
+  "total_cost": 180000,
+  "created_at": "2026-08-25T00:35:04.131363Z",
+  "updated_at": "2026-08-25T00:35:04.271144Z"
+}
