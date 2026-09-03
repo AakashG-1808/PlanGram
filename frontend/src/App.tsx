@@ -13,6 +13,15 @@ import type { ScenarioSimulation } from './types/scenario';
 
 type ViewMode = 'landing' | 'catalog' | 'planner';
 
+const DEFAULT_OBJECTIVE_THRESHOLDS: Record<PlanningObjective, number> = {
+  water: 500,
+  healthcare: 1200,
+  education: 1000,
+  sanitation: 300,
+  waste: 400,
+  connectivity: 800,
+};
+
 export default function App() {
   // Navigation / View state
   const [viewMode, setViewMode] = useState<ViewMode>('landing');
@@ -28,7 +37,15 @@ export default function App() {
   // Planning & Simulation state
   const [activeObjective, setActiveObjective] = useState<PlanningObjective>('water');
   const [selectedInfrastructure, setSelectedInfrastructure] = useState('water_facility');
-  const [threshold, setThreshold] = useState(500); // meters
+  const [objectiveThresholds, setObjectiveThresholds] = useState<Record<PlanningObjective, number>>(DEFAULT_OBJECTIVE_THRESHOLDS);
+  const threshold = objectiveThresholds[activeObjective] || 500;
+
+  const handleChangeThreshold = (val: number) => {
+    setObjectiveThresholds((prev) => ({
+      ...prev,
+      [activeObjective]: val,
+    }));
+  };
 
   const [metrics, setMetrics] = useState<VillageMetrics | null>(null);
   const [objectiveAnalysis, setObjectiveAnalysis] = useState<InfrastructureAnalysis | null>(null);
@@ -229,6 +246,7 @@ export default function App() {
       name: `${label} #${countForType}`,
       location: loc,
       cost: 250000,
+      threshold: threshold,
     };
 
     const updated = [...proposedFacilities, newFacility];
@@ -241,6 +259,13 @@ export default function App() {
   // Update a specific facility location when dragged
   const handleUpdateFacilityLocation = async (id: string, newLoc: [number, number]) => {
     const updated = proposedFacilities.map((f) => (f.id === id ? { ...f, location: newLoc } : f));
+    setProposedFacilities(updated);
+    await runMultiSimulation(updated);
+  };
+
+  // Update a specific facility's individual service radius / threshold
+  const handleUpdateFacilityThreshold = async (id: string, newRadius: number) => {
+    const updated = proposedFacilities.map((f) => (f.id === id ? { ...f, threshold: newRadius } : f));
     setProposedFacilities(updated);
     await runMultiSimulation(updated);
   };
@@ -484,7 +509,7 @@ export default function App() {
               selectedInfrastructure={selectedInfrastructure}
               onChangeInfrastructure={setSelectedInfrastructure}
               threshold={threshold}
-              onChangeThreshold={setThreshold}
+              onChangeThreshold={handleChangeThreshold}
               layerVisibility={layerVisibility}
               onToggleLayer={handleToggleLayer}
               onFindBestLocations={handleFindBestLocations}
@@ -494,6 +519,7 @@ export default function App() {
               onClearCandidates={handleClearCandidates}
               onDismissCandidate={handleDismissCandidate}
               proposedFacilities={proposedFacilities}
+              onUpdateFacilityThreshold={handleUpdateFacilityThreshold}
               onDeleteProposedFacility={handleDeleteProposedFacility}
               onClearAllProposed={handleClearAllProposed}
               isPlacingProposed={isPlacingProposed}
@@ -527,6 +553,7 @@ export default function App() {
               proposedFacilities={proposedFacilities}
               onAddProposedFacility={handleAddProposedFacility}
               onUpdateProposedFacilityLocation={handleUpdateFacilityLocation}
+              onUpdateProposedFacilityThreshold={handleUpdateFacilityThreshold}
               onDeleteProposedFacility={handleDeleteProposedFacility}
               isPlacingProposed={isPlacingProposed}
               activeObjective={activeObjective}

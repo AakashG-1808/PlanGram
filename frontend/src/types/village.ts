@@ -56,6 +56,7 @@ export interface ProposedFacility {
   name: string;
   location: [number, number]; // [lng, lat]
   cost?: number;
+  threshold?: number; // Service threshold / radius in meters
 }
 
 export interface ExistingFacility {

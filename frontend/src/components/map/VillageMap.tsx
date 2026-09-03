@@ -42,6 +42,7 @@ interface VillageMapProps {
   proposedFacilities?: ProposedFacility[];
   onAddProposedFacility?: (loc: [number, number]) => void;
   onUpdateProposedFacilityLocation?: (id: string, loc: [number, number]) => void;
+  onUpdateProposedFacilityThreshold?: (id: string, threshold: number) => void;
   onDeleteProposedFacility?: (id: string) => void;
   isPlacingProposed?: boolean;
   activeObjective?: PlanningObjective;
@@ -82,6 +83,7 @@ export default function VillageMap({
   proposedFacilities = [],
   onAddProposedFacility,
   onUpdateProposedFacilityLocation,
+  onUpdateProposedFacilityThreshold,
   onDeleteProposedFacility,
   isPlacingProposed,
   activeObjective = 'water',
@@ -107,6 +109,7 @@ export default function VillageMap({
   const isPlacingProposedRef = useRef(isPlacingProposed);
   const onAddProposedFacilityRef = useRef(onAddProposedFacility);
   const onUpdateProposedFacilityLocationRef = useRef(onUpdateProposedFacilityLocation);
+  const onUpdateProposedFacilityThresholdRef = useRef(onUpdateProposedFacilityThreshold);
   const onDeleteProposedFacilityRef = useRef(onDeleteProposedFacility);
   const layerVisibilityRef = useRef(layerVisibility);
   const thresholdRef = useRef(threshold);
@@ -118,6 +121,7 @@ export default function VillageMap({
   useEffect(() => { isPlacingProposedRef.current = isPlacingProposed; });
   useEffect(() => { onAddProposedFacilityRef.current = onAddProposedFacility; });
   useEffect(() => { onUpdateProposedFacilityLocationRef.current = onUpdateProposedFacilityLocation; });
+  useEffect(() => { onUpdateProposedFacilityThresholdRef.current = onUpdateProposedFacilityThreshold; });
   useEffect(() => { onDeleteProposedFacilityRef.current = onDeleteProposedFacility; });
   useEffect(() => { layerVisibilityRef.current = layerVisibility; });
   useEffect(() => { thresholdRef.current = threshold; });
@@ -373,12 +377,12 @@ export default function VillageMap({
   }, [layerVisibility, mapReady, safeSetVisibility]);
 
   // =====================================================================
-  // 4. COVERAGE BUFFERS: rebuild when threshold/proposedFacilities changes
+  // 4. COVERAGE BUFFERS: rebuild when threshold/proposedFacilities/activeObjective changes
   // =====================================================================
   useEffect(() => {
     if (!map.current || !mapReady) return;
     rebuildCoverageBuffers(map.current);
-  }, [threshold, proposedFacilities, mapReady]);
+  }, [threshold, proposedFacilities, activeObjective, mapReady]);
 
   // =====================================================================
   // 5. UNDERSERVED CLUSTERS: rebuild when metrics change
@@ -489,6 +493,29 @@ export default function VillageMap({
           ✋ Drag to reposition
         </div>
       `;
+
+      // Facility-specific radius adjuster inside popup
+      const radiusContainer = document.createElement('div');
+      radiusContainer.className = 'pt-1.5 border-t border-slate-200 flex items-center justify-between text-[11px]';
+      radiusContainer.innerHTML = `
+        <span class="text-slate-600">Radius: <strong class="text-blue-600 font-mono">${fac.threshold || thresholdRef.current}m</strong></span>
+      `;
+      const slider = document.createElement('input');
+      slider.type = 'range';
+      slider.min = '100';
+      slider.max = '1500';
+      slider.step = '50';
+      slider.value = String(fac.threshold || thresholdRef.current);
+      slider.className = 'w-20 h-1 bg-slate-200 rounded appearance-none cursor-pointer accent-blue-600';
+      slider.title = 'Adjust coverage radius for this facility';
+      slider.oninput = (e) => {
+        const val = Number((e.target as HTMLInputElement).value);
+        if (onUpdateProposedFacilityThresholdRef.current) {
+          onUpdateProposedFacilityThresholdRef.current(fac.id, val);
+        }
+      };
+      radiusContainer.appendChild(slider);
+      popupContainer.appendChild(radiusContainer);
 
       const deleteBtn = document.createElement('button');
       deleteBtn.className =
@@ -681,6 +708,18 @@ export default function VillageMap({
     }
   };
 
+  // Helper to test if an existing facility matches the active planning objective
+  const isFacilityMatchingObjective = (fType: string, activeObj: string): boolean => {
+    const t = (fType || '').toLowerCase();
+    if (activeObj === 'water') return t.includes('water') || t.includes('borewell') || t.includes('kiosk');
+    if (activeObj === 'healthcare') return t.includes('health') || t.includes('clinic') || t.includes('phc') || t.includes('wellness');
+    if (activeObj === 'education') return t.includes('education') || t.includes('school') || t.includes('anganwadi');
+    if (activeObj === 'sanitation') return t.includes('sanitation') || t.includes('toilet') || t.includes('stp');
+    if (activeObj === 'waste') return t.includes('waste') || t.includes('recycl');
+    if (activeObj === 'connectivity') return t.includes('bus') || t.includes('transit') || t.includes('road') || t.includes('connect');
+    return false;
+  };
+
   // =====================================================================
   // HELPER: Rebuild coverage buffer polygons (for existing & all proposed)
   // =====================================================================
@@ -688,25 +727,37 @@ export default function VillageMap({
     const features: GeoJSON.Feature<GeoJSON.Polygon>[] = [];
     const currentThreshold = thresholdRef.current;
     const currentProposed = proposedFacilitiesRef.current;
+    const currentObjective = activeObjectiveRef.current || 'water';
     const vis = layerVisibilityRef.current;
 
+    // 1. Existing facilities: Only draw coverage buffer if facility matches the current active planning objective
     if (existingFacilitiesDataRef.current?.features) {
       for (const f of existingFacilitiesDataRef.current.features) {
         if (f.geometry.type === 'Point') {
+          const props = f.properties || {};
+          const fType = props.facility_type || '';
+          if (!isFacilityMatchingObjective(fType, currentObjective)) {
+            continue;
+          }
+
           const coords = (f.geometry as GeoJSON.Point).coordinates as [number, number];
           features.push({
-            type: 'Feature', properties: { type: 'existing' },
+            type: 'Feature',
+            properties: { type: 'existing', objective: fType },
             geometry: { type: 'Polygon', coordinates: [createGeoJSONCircle(coords, currentThreshold)] },
           });
         }
       }
     }
 
+    // 2. Proposed facilities: Each facility uses its own individual threshold / radius
     if (currentProposed && currentProposed.length > 0) {
       for (const fac of currentProposed) {
+        const radius = fac.threshold && fac.threshold > 0 ? fac.threshold : currentThreshold;
         features.push({
-          type: 'Feature', properties: { type: 'proposed', objective: fac.objective },
-          geometry: { type: 'Polygon', coordinates: [createGeoJSONCircle(fac.location, currentThreshold)] },
+          type: 'Feature',
+          properties: { type: 'proposed', objective: fac.objective, id: fac.id },
+          geometry: { type: 'Polygon', coordinates: [createGeoJSONCircle(fac.location, radius)] },
         });
       }
     }

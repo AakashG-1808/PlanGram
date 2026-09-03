@@ -26,6 +26,7 @@ interface PlanningSidebarProps {
   onClearCandidates?: () => void;
   onDismissCandidate?: (candidate: Candidate) => void;
   proposedFacilities: ProposedFacility[];
+  onUpdateFacilityThreshold?: (id: string, threshold: number) => void;
   onDeleteProposedFacility: (id: string) => void;
   onClearAllProposed: () => void;
   isPlacingProposed: boolean;
@@ -116,6 +117,7 @@ export default function PlanningSidebar({
   onClearCandidates,
   onDismissCandidate,
   proposedFacilities,
+  onUpdateFacilityThreshold,
   onDeleteProposedFacility,
   onClearAllProposed,
   isPlacingProposed,
@@ -301,28 +303,49 @@ export default function PlanningSidebar({
                 return (
                   <div
                     key={fac.id || idx}
-                    className="w-full bg-slate-800/80 border border-slate-700/80 rounded-lg p-2 flex items-center justify-between gap-2 hover:border-blue-500/50 transition-colors"
+                    className="w-full bg-slate-800/80 border border-slate-700/80 rounded-lg p-2 space-y-1.5 hover:border-blue-500/50 transition-colors"
                   >
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="text-sm shrink-0">{objMeta?.icon || '📍'}</span>
-                      <div className="min-w-0">
-                        <div className="text-xs font-bold text-white truncate">
-                          {fac.name}
-                        </div>
-                        <div className="text-[10px] text-slate-400">
-                          {fac.location[1].toFixed(4)}, {fac.location[0].toFixed(4)}
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="text-sm shrink-0">{objMeta?.icon || '📍'}</span>
+                        <div className="min-w-0">
+                          <div className="text-xs font-bold text-white truncate">
+                            {fac.name}
+                          </div>
+                          <div className="text-[10px] text-slate-400">
+                            {fac.location[1].toFixed(4)}, {fac.location[0].toFixed(4)}
+                          </div>
                         </div>
                       </div>
+
+                      <button
+                        onClick={() => onDeleteProposedFacility(fac.id)}
+                        className="px-2 py-1 rounded-md bg-red-500/10 hover:bg-red-500 text-red-300 hover:text-white border border-red-500/20 hover:border-red-500 text-xs font-semibold transition-all shrink-0 flex items-center gap-1"
+                        title="Delete this facility"
+                      >
+                        <span>🗑️</span>
+                        <span className="text-[10px]">Delete</span>
+                      </button>
                     </div>
 
-                    <button
-                      onClick={() => onDeleteProposedFacility(fac.id)}
-                      className="px-2 py-1 rounded-md bg-red-500/10 hover:bg-red-500 text-red-300 hover:text-white border border-red-500/20 hover:border-red-500 text-xs font-semibold transition-all shrink-0 flex items-center gap-1"
-                      title="Delete this facility"
-                    >
-                      <span>🗑️</span>
-                      <span className="text-[10px]">Delete</span>
-                    </button>
+                    {/* Facility-Specific Service Radius / Threshold Control */}
+                    <div className="pt-1.5 border-t border-slate-700/50 flex items-center justify-between text-[10px]">
+                      <span className="text-slate-400 flex items-center gap-1">
+                        <span>📏</span>
+                        <span>Facility Radius:</span>
+                        <strong className="text-blue-400 font-mono">{fac.threshold || threshold}m</strong>
+                      </span>
+                      <input
+                        type="range"
+                        min="100"
+                        max="1500"
+                        step="50"
+                        value={fac.threshold || threshold}
+                        onChange={(e) => onUpdateFacilityThreshold?.(fac.id, Number(e.target.value))}
+                        className="w-24 h-1.5 bg-slate-700 rounded appearance-none cursor-pointer accent-blue-500"
+                        title={`Adjust coverage radius for ${fac.name}`}
+                      />
+                    </div>
                   </div>
                 );
               })}

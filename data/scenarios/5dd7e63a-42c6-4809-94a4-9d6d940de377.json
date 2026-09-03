@@ -1,0 +1,33 @@
+{
+  "scenario_id": "5dd7e63a-42c6-4809-94a4-9d6d940de377",
+  "name": "MultiPlan_1788413568956",
+  "description": "Multi-Facility Scenario with 2 projects",
+  "village_id": "village_01",
+  "projects": [
+    {
+      "project_id": "7cf88df2-a626-47f3-8da1-32a0d59bad5f",
+      "infrastructure_type": "waste_facility",
+      "location": [
+        77.6963098255909,
+        12.68837404368374
+      ],
+      "name": "Waste Processing Plant #1",
+      "cost": 0,
+      "status": "proposed"
+    },
+    {
+      "project_id": "1bd6a65e-64e2-4345-a70a-92e27bf57e8f",
+      "infrastructure_type": "waste_facility",
+      "location": [
+        77.68897142119454,
+        12.694703725319684
+      ],
+      "name": "Waste Processing Plant #2",
+      "cost": 0,
+      "status": "proposed"
+    }
+  ],
+  "total_cost": 0,
+  "created_at": "2026-09-03T05:32:48.968656Z",
+  "updated_at": "2026-09-03T05:32:49.016992Z"
+}

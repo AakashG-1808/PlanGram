@@ -1,0 +1,22 @@
+{
+  "scenario_id": "0e2a5572-9af1-498e-9f8e-c7b516dabd8c",
+  "name": "MultiPlan_1788413951970",
+  "description": "Multi-Facility Scenario with 1 projects",
+  "village_id": "village_01",
+  "projects": [
+    {
+      "project_id": "44a77e99-f3b5-483e-b66d-b206df748c28",
+      "infrastructure_type": "bus_stop",
+      "location": [
+        77.70172877676227,
+        12.68585961479087
+      ],
+      "name": "Bus Transit Shelter #1",
+      "cost": 35000,
+      "status": "proposed"
+    }
+  ],
+  "total_cost": 35000,
+  "created_at": "2026-09-03T05:39:11.982400Z",
+  "updated_at": "2026-09-03T05:39:12.024230Z"
+}

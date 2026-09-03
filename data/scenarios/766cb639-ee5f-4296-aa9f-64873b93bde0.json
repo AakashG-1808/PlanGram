@@ -1,0 +1,33 @@
+{
+  "scenario_id": "766cb639-ee5f-4296-aa9f-64873b93bde0",
+  "name": "MultiPlan_1788413345881",
+  "description": "Multi-Facility Scenario with 2 projects",
+  "village_id": "village_01",
+  "projects": [
+    {
+      "project_id": "88927e42-a9b2-471e-8e38-32dd66868744",
+      "infrastructure_type": "health_facility",
+      "location": [
+        77.69396419190974,
+        12.686682376283642
+      ],
+      "name": "Primary Health Centre #1",
+      "cost": 0,
+      "status": "proposed"
+    },
+    {
+      "project_id": "f6eb0926-d3d5-4c51-9379-7354f419500e",
+      "infrastructure_type": "public_toilet",
+      "location": [
+        77.6890908596576,
+        12.70030931343129
+      ],
+      "name": "Public Toilet Complex #1",
+      "cost": 120000,
+      "status": "proposed"
+    }
+  ],
+  "total_cost": 120000,
+  "created_at": "2026-09-03T05:29:05.894608Z",
+  "updated_at": "2026-09-03T05:29:05.953338Z"
+}

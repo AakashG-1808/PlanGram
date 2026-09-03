@@ -1,0 +1,22 @@
+{
+  "scenario_id": "105ace34-31cf-4fa1-9f2d-7f9269b049a5",
+  "name": "MultiPlan_1788413307622",
+  "description": "Multi-Facility Scenario with 1 projects",
+  "village_id": "village_01",
+  "projects": [
+    {
+      "project_id": "af3989e9-de62-411b-b718-ffbcf284b386",
+      "infrastructure_type": "health_facility",
+      "location": [
+        77.69396419190974,
+        12.686682376283642
+      ],
+      "name": "Primary Health Centre #1",
+      "cost": 0,
+      "status": "proposed"
+    }
+  ],
+  "total_cost": 0,
+  "created_at": "2026-09-03T05:28:27.689491Z",
+  "updated_at": "2026-09-03T05:28:27.807254Z"
+}
