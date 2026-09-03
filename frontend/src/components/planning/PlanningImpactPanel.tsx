@@ -44,7 +44,6 @@ export default function PlanningImpactPanel({
 
   const objMeta = OBJECTIVE_INFO[activeObjective] || OBJECTIVE_INFO.water;
   const numTotalProposed = proposedFacilities.length;
-  const numObjectiveProposed = proposedFacilities.filter((f) => f.objective === activeObjective).length;
 
   // Active coverage metrics (from backend analysis or baseline estimate)
   const activeCoverage = objectiveAnalysis?.coverage || (activeObjective === 'water' ? metrics?.water_coverage : null);

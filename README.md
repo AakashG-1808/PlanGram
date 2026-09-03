@@ -103,7 +103,7 @@ cp .env.example .env
 
 If you want AI-based explanations, add your API key in the environment file. If not, the demo version can still run without it.
 
-### 3. Manual setup (without Docker)
+### 3. Start the services
 
 #### Backend
 
@@ -154,18 +154,6 @@ You should now see the project running with demo village data.
 
 ---
 
-## Run without Docker
-
-If you are not using Docker, you can start the project like this:
-
-1. Start the backend in one terminal.
-2. Start the frontend in another terminal.
-3. Open the frontend URL in your browser.
-
-This is the simplest option for local development and testing.
-
----
-
 ## Default demo data
 
 The project already includes sample village data so you can explore it immediately without needing external files.
@@ -204,7 +192,6 @@ A simple overview of the workspace:
 - [data](data) — sample GIS and village data
 - [docs](docs) — project documentation
 - [scripts](scripts) — helper scripts and tests
-- [docker-compose.yml](docker-compose.yml) — startup configuration
 
 ---
 

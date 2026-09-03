@@ -54,7 +54,7 @@ Phase 12 is the final phase that transforms PlanGram from a functional prototype
    └── Quick start
 
 4. Deployment
-   ├── Docker setup
+   ├── Host setup
    ├── Environment configuration
    ├── Production checklist
    └── Monitoring setup
@@ -64,58 +64,45 @@ Phase 12 is the final phase that transforms PlanGram from a functional prototype
 
 ## Implementation Plan
 
-### Phase 12.1: Error Handling & Validation (Day 1)
-**Backend Improvements**:
-- [ ] Consistent error response format
-- [ ] Input validation on all endpoints
-- [ ] Graceful degradation for AI services
-- [ ] Database connection error handling
-- [ ] File system error handling
+### Phase 12.1: Error Handling & Resilience (Day 1)
+**Backend Error Handling**:
+- [ ] Standardized error responses across all endpoints
+- [ ] Graceful degradation for optional services (AI, GIS)
+- [ ] Comprehensive validation error messages
+- [ ] Logging improvements with context
 
-**Frontend Improvements**:
-- [ ] Error boundary components
-- [ ] User-friendly error messages
-- [ ] Retry mechanisms
-- [ ] Fallback UI states
+**Frontend Error Handling**:
+- [ ] Error boundaries for React components
+- [ ] Toast notifications for API failures
+- [ ] Fallback UI components when data fails to load
+- [ ] Offline detection and user feedback
 
-### Phase 12.2: Loading States & UX (Day 1-2)
-**Loading Indicators**:
-- [ ] API call loading states
-- [ ] Map loading indicators
-- [ ] Skeleton screens for data
-- [ ] Progress bars for long operations
+### Phase 12.2: Loading States & Transitions (Day 1-2)
+**UI Polish**:
+- [ ] Skeleton loaders for village data loading
+- [ ] Progress indicators for optimization algorithm
+- [ ] Smooth transitions between map states
+- [ ] Disabled states during pending operations
 
-**User Feedback**:
-- [ ] Success notifications
-- [ ] Warning alerts
-- [ ] Info tooltips
-- [ ] Confirmation dialogs
-
-### Phase 12.3: Documentation (Day 2)
-**User Documentation**:
-- [ ] Complete user guide
-- [ ] Feature documentation
-- [ ] FAQ section
-- [ ] Troubleshooting guide
-
-**Developer Documentation**:
-- [ ] API reference (auto-generated)
-- [ ] Architecture overview
-- [ ] Setup instructions
+### Phase 12.3: Comprehensive Documentation (Day 2)
+**Documentation Suite**:
+- [ ] User Guide (`docs/USER_GUIDE.md`)
+- [ ] API Reference (`docs/API_REFERENCE.md`)
+- [ ] Deployment Guide (`DEPLOYMENT.md`)
+- [ ] Quick Start Guide (`QUICK_START.md`)
 - [ ] Contributing guide
 
 ### Phase 12.4: Deployment Setup (Day 2-3)
-**Docker Configuration**:
-- [ ] Dockerfile for backend
-- [ ] Dockerfile for frontend
-- [ ] Docker Compose setup
+**Deployment Configuration**:
+- [ ] Host deployment guides
+- [ ] Process management configuration
 - [ ] Environment templates
+- [ ] Security checklist
 
 **Deployment Guides**:
 - [ ] Local deployment
 - [ ] Cloud deployment (AWS/GCP/Azure)
 - [ ] Environment variables
-- [ ] Security checklist
 
 ### Phase 12.5: Testing & QA (Day 3)
 **Final Testing**:
@@ -187,32 +174,10 @@ Phase 12 is the final phase that transforms PlanGram from a functional prototype
 
 ### 5. Deployment Package
 
-**Docker Setup**:
-```yaml
-# docker-compose.yml
-version: '3.8'
-
-services:
-  backend:
-    build: ./backend
-    ports:
-      - "8000:8000"
-    environment:
-      - DATABASE_URL=${DATABASE_URL}
-      - AI_PROVIDER=${AI_PROVIDER}
-      - GEMINI_API_KEY=${GEMINI_API_KEY}
-    volumes:
-      - ./data:/app/data
-  
-  frontend:
-    build: ./frontend
-    ports:
-      - "5173:5173"
-    environment:
-      - VITE_API_BASE_URL=http://localhost:8000/api
-    depends_on:
-      - backend
-```
+**Host Configuration**:
+- Backend process management via systemd / PM2
+- Frontend static asset hosting via Nginx reverse proxy
+- Environment template `.env.example`
 
 ### 6. Quick Start Guide
 
@@ -224,18 +189,12 @@ cd plangram
 
 # Setup environment
 cp .env.example .env
-# Edit .env with your API keys
 
-# Start with Docker
-docker-compose up -d
-
-# Open browser
-open http://localhost:5173
-
-# Or manual setup
+# Terminal 1 - Backend:
 cd backend && pip install -r requirements.txt
 python -m uvicorn app.main:app --reload
 
+# Terminal 2 - Frontend:
 cd ../frontend && npm install
 npm run dev
 ```
@@ -269,7 +228,7 @@ npm run dev
 - Evening: Quick start and troubleshooting
 
 ### Day 3: Deployment & Final Polish
-- Morning: Docker setup and configuration
+- Morning: Deployment setup and configuration
 - Afternoon: End-to-end testing
 - Evening: Final QA and release preparation
 

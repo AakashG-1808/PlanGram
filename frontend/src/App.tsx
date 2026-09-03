@@ -179,6 +179,23 @@ export default function App() {
     await handleAddProposedFacility(loc);
   };
 
+  // Clear all recommended candidate locations
+  const handleClearCandidates = () => {
+    setCandidates([]);
+  };
+
+  // Dismiss an individual candidate location
+  const handleDismissCandidate = (candidate: Candidate) => {
+    setCandidates((prev) =>
+      prev.filter(
+        (c) =>
+          c.rank !== candidate.rank ||
+          c.location[0] !== candidate.location[0] ||
+          c.location[1] !== candidate.location[1]
+      )
+    );
+  };
+
   // Add a newly pinned facility on the map
   const handleAddProposedFacility = async (loc: [number, number]) => {
     const defaultLabels: Record<string, string> = {
@@ -474,6 +491,8 @@ export default function App() {
               isGeneratingCandidates={isGeneratingCandidates}
               candidates={candidates}
               onSelectCandidate={handleSelectCandidate}
+              onClearCandidates={handleClearCandidates}
+              onDismissCandidate={handleDismissCandidate}
               proposedFacilities={proposedFacilities}
               onDeleteProposedFacility={handleDeleteProposedFacility}
               onClearAllProposed={handleClearAllProposed}
@@ -504,6 +523,7 @@ export default function App() {
               threshold={threshold}
               candidates={candidates}
               onSelectCandidate={handleSelectCandidate}
+              onDismissCandidate={handleDismissCandidate}
               proposedFacilities={proposedFacilities}
               onAddProposedFacility={handleAddProposedFacility}
               onUpdateProposedFacilityLocation={handleUpdateFacilityLocation}

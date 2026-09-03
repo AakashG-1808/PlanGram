@@ -23,6 +23,8 @@ interface PlanningSidebarProps {
   isGeneratingCandidates: boolean;
   candidates: Candidate[];
   onSelectCandidate: (candidate: Candidate) => void;
+  onClearCandidates?: () => void;
+  onDismissCandidate?: (candidate: Candidate) => void;
   proposedFacilities: ProposedFacility[];
   onDeleteProposedFacility: (id: string) => void;
   onClearAllProposed: () => void;
@@ -111,6 +113,8 @@ export default function PlanningSidebar({
   isGeneratingCandidates,
   candidates,
   onSelectCandidate,
+  onClearCandidates,
+  onDismissCandidate,
   proposedFacilities,
   onDeleteProposedFacility,
   onClearAllProposed,
@@ -228,23 +232,35 @@ export default function PlanningSidebar({
 
         {/* Action Buttons */}
         <div className="space-y-2">
-          <button
-            onClick={onFindBestLocations}
-            disabled={isGeneratingCandidates}
-            className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold text-xs shadow-md shadow-blue-600/20 transition-all flex items-center justify-center gap-2"
-          >
-            {isGeneratingCandidates ? (
-              <>
-                <span className="inline-block animate-spin">⟳</span>
-                <span>Optimizing Gap Locations...</span>
-              </>
-            ) : (
-              <>
-                <span>⚡</span>
-                <span>Find Best Locations</span>
-              </>
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={onFindBestLocations}
+              disabled={isGeneratingCandidates}
+              className="flex-1 py-2.5 px-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold text-xs shadow-md shadow-blue-600/20 transition-all flex items-center justify-center gap-2"
+            >
+              {isGeneratingCandidates ? (
+                <>
+                  <span className="inline-block animate-spin">⟳</span>
+                  <span>Optimizing Gap Locations...</span>
+                </>
+              ) : (
+                <>
+                  <span>⚡</span>
+                  <span>{candidates.length > 0 ? 'Find Best Locations' : 'Find Best Locations'}</span>
+                </>
+              )}
+            </button>
+            {candidates.length > 0 && onClearCandidates && (
+              <button
+                onClick={onClearCandidates}
+                className="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-red-500/20 text-slate-300 hover:text-red-400 border border-slate-700 hover:border-red-500/40 text-xs font-semibold transition-all flex items-center justify-center gap-1 shrink-0"
+                title="Remove best recommended locations"
+              >
+                <span>✕</span>
+                <span className="text-[11px]">Clear</span>
+              </button>
             )}
-          </button>
+          </div>
 
           <button
             onClick={onTogglePlacementMode}
@@ -316,35 +332,64 @@ export default function PlanningSidebar({
 
         {/* Candidate Locations List */}
         {candidates.length > 0 && (
-          <div className="pt-2 border-t border-slate-800">
-            <div className="flex items-center justify-between text-[11px] font-semibold text-slate-400 mb-2">
-              <span>Top Recommended Sites ({candidates.length})</span>
-              <span className="text-[10px] text-indigo-400">Click to place</span>
+          <div className="pt-2 border-t border-slate-800 space-y-2">
+            <div className="flex items-center justify-between text-[11px] font-semibold text-slate-300">
+              <span className="flex items-center gap-1.5 font-bold text-white">
+                <span>⚡</span>
+                <span>Top Recommended Sites ({candidates.length})</span>
+              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] text-indigo-400 hidden sm:inline">Click to place</span>
+                {onClearCandidates && (
+                  <button
+                    onClick={onClearCandidates}
+                    className="px-2 py-0.5 rounded-md bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 border border-red-500/20 text-[10px] font-semibold transition-all flex items-center gap-1"
+                    title="Remove all recommended sites from map"
+                  >
+                    <span>✕</span>
+                    <span>Remove All</span>
+                  </button>
+                )}
+              </div>
             </div>
-            <div className="space-y-1.5 max-h-40 overflow-y-auto pr-1">
-              {candidates.slice(0, 5).map((cand, idx) => (
-                <button
-                  key={idx}
+            <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+              {candidates.map((cand, idx) => (
+                <div
+                  key={cand.rank || idx}
                   onClick={() => onSelectCandidate(cand)}
-                  className="w-full bg-slate-800/70 hover:bg-indigo-600/30 hover:border-indigo-500/60 border border-slate-700/60 rounded-lg p-2 text-left transition-all flex items-center justify-between group"
+                  className="w-full bg-slate-800/70 hover:bg-indigo-600/30 hover:border-indigo-500/60 border border-slate-700/60 rounded-lg p-2 text-left transition-all flex items-center justify-between group cursor-pointer"
                 >
-                  <div className="flex items-center gap-2">
-                    <span className="w-5 h-5 rounded-full bg-indigo-500 text-white font-bold text-[10px] flex items-center justify-center">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="w-5 h-5 rounded-full bg-indigo-500 text-white font-bold text-[10px] flex items-center justify-center shrink-0">
                       #{cand.rank || idx + 1}
                     </span>
-                    <div>
-                      <div className="text-[11px] font-bold text-white group-hover:text-indigo-300">
+                    <div className="min-w-0">
+                      <div className="text-[11px] font-bold text-white group-hover:text-indigo-300 truncate">
                         Site #{cand.rank || idx + 1}
                       </div>
-                      <div className="text-[10px] text-slate-400">
+                      <div className="text-[10px] text-slate-400 truncate">
                         +{cand.households_gained || Math.round((cand.coverage_improvement || 0.25) * 200)} households served
                       </div>
                     </div>
                   </div>
-                  <span className="text-[10px] font-semibold text-emerald-400">
-                    {cand.combined_score ? `${Math.round(cand.combined_score)}% fit` : '+26% cov'}
-                  </span>
-                </button>
+                  <div className="flex items-center gap-1.5 shrink-0 ml-1">
+                    <span className="text-[10px] font-semibold text-emerald-400">
+                      {cand.combined_score ? `${Math.round(cand.combined_score)}% fit` : '+26% cov'}
+                    </span>
+                    {onDismissCandidate && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDismissCandidate(cand);
+                        }}
+                        className="p-1 rounded hover:bg-red-500/20 text-slate-400 hover:text-red-400 text-xs transition-colors"
+                        title={`Remove Site #${cand.rank || idx + 1}`}
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
+                </div>
               ))}
             </div>
           </div>

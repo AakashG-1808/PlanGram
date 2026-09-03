@@ -318,7 +318,6 @@ Future possibilities:
 - Microservices architecture
 - Caching layer (Redis)
 - Message queue (Celery)
-- Containerization (Docker)
 - Cloud deployment (AWS/GCP/Azure)
 
 ## Development Workflow

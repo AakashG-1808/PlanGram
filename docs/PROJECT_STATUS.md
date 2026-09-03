@@ -8,7 +8,7 @@
 
 ## Executive Summary
 
-PlanGram is an interactive spatial decision support platform for rural infrastructure planning. The system is now **MVP COMPLETE and PRODUCTION-READY** with 10 phases implemented and validated, including AI-powered natural language capabilities, Docker deployment, and comprehensive documentation.
+PlanGram is an interactive spatial decision support platform for rural infrastructure planning. The system is now **MVP COMPLETE and PRODUCTION-READY** with 10 phases implemented and validated, including AI-powered natural language capabilities, local and server deployment support, and comprehensive documentation.
 
 **Key Achievement**: Complete production-ready system with one-command deployment, 35 API endpoints, AI features, and 1,300+ lines of documentation.
 

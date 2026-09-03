@@ -6,11 +6,10 @@
 
 ## Prerequisites
 
-- Docker 20.10+ and Docker Compose 2.0+
+- Python 3.10+
+- Node.js 18+ and npm
 - 4GB RAM minimum
-- 10GB disk space
-
-**Don't have Docker?** [Install Docker](https://docs.docker.com/get-docker/)
+- 2GB disk space
 
 ---
 
@@ -32,19 +31,37 @@ nano .env
 
 ### 2. Start Services
 
+#### Terminal 1 — Backend:
 ```bash
-docker-compose up -d
+cd backend
+python -m venv venv
+
+# Windows PowerShell:
+.\venv\Scripts\Activate.ps1
+# Windows Command Prompt:
+# venv\Scripts\activate
+# Linux/macOS:
+# source venv/bin/activate
+
+pip install --upgrade pip
+pip install -r requirements.txt
+python -m uvicorn app.main:app --reload
 ```
 
-Wait 30-60 seconds for services to start.
+#### Terminal 2 — Frontend:
+```bash
+cd frontend
+npm install
+npm run dev
+```
 
 ### 3. Open Application
 
 Open in your browser:
-- **Application**: http://localhost
+- **Application**: http://localhost:5173
 - **API Docs**: http://localhost:8000/api/docs
 
-**That's it!** PlanGram is now running with 2 demo villages.
+**That's it!** PlanGram is now running with demo village data.
 
 ---
 
@@ -87,81 +104,6 @@ Open in your browser:
 
 ---
 
-## Manual Setup (Without Docker)
-
-### Backend
-
-```bash
-cd backend
-python -m venv venv
-
-# Activate virtual environment:
-# Windows PowerShell: .\venv\Scripts\Activate.ps1
-# Windows CMD: venv\Scripts\activate
-# Linux/Mac: source venv/bin/activate
-
-.\venv\Scripts\Activate.ps1  # For Windows PowerShell
-
-# Install dependencies (skip database packages if needed)
-pip install --upgrade pip setuptools wheel
-pip install fastapi uvicorn pydantic pydantic-settings python-multipart python-dotenv
-pip install numpy pandas shapely geopandas pyproj
-pip install google-generativeai pytest pytest-asyncio httpx loguru
-
-# Start server
-python -m uvicorn app.main:app --reload
-```
-
-**Backend will run on**: http://127.0.0.1:8000
-
-### Frontend
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-**Frontend will run on**: http://localhost:5173
-
----
-
-## Useful Commands
-
-### Check Status
-
-```bash
-docker-compose ps
-```
-
-### View Logs
-
-```bash
-docker-compose logs -f
-```
-
-### Stop Services
-
-```bash
-docker-compose down
-```
-
-### Restart Services
-
-```bash
-docker-compose restart
-```
-
-### Update to Latest Version
-
-```bash
-git pull
-docker-compose down
-docker-compose up -d --build
-```
-
----
-
 ## Configuration
 
 ### Enable AI Features
@@ -172,20 +114,7 @@ docker-compose up -d --build
    AI_PROVIDER=gemini
    GEMINI_API_KEY=your_actual_key_here
    ```
-3. Restart: `docker-compose restart`
-
-### Change Ports
-
-Edit `docker-compose.yml`:
-```yaml
-frontend:
-  ports:
-    - "8080:80"  # Change 8080 to your preferred port
-
-backend:
-  ports:
-    - "9000:8000"  # Change 9000 to your preferred port
-```
+3. Restart the backend service.
 
 ---
 
@@ -193,34 +122,28 @@ backend:
 
 ### Port Already in Use
 
-**Error**: `port is already allocated`
+**Error**: `Address already in use` (port 8000 or 5173)
 
 **Solution**:
-```bash
-# Stop conflicting service or change port in docker-compose.yml
-docker-compose down
-# Edit docker-compose.yml to use different port
-docker-compose up -d
-```
+- If port 8000 is occupied, run backend on an alternate port:
+  ```bash
+  python -m uvicorn app.main:app --port 8001 --reload
+  ```
+- Vite will automatically prompt or select port 5174 if port 5173 is in use.
 
 ### Backend Not Starting
 
-**Check logs**:
-```bash
-docker-compose logs backend
-```
-
 **Common fixes**:
-- Verify `.env` file exists
-- Check Python syntax in error message
-- Restart: `docker-compose restart backend`
+- Verify Python virtual environment is activated (`(venv)` shown in terminal)
+- Run `pip install -r requirements.txt` to ensure all GIS and web dependencies are installed
+- Check that `.env` exists in the repository root
 
 ### Frontend Can't Connect to Backend
 
 **Solution**:
 1. Verify backend is running: `curl http://localhost:8000/api/health`
 2. Check browser console for errors
-3. Verify `VITE_API_BASE_URL` in frontend `.env.local`
+3. Ensure backend CORS allows `http://localhost:5173` (configured by default in `.env.example`)
 
 ---
 
@@ -238,7 +161,6 @@ docker-compose logs backend
 - **Documentation**: Check `/docs` folder
 - **API Docs**: http://localhost:8000/api/docs
 - **Issues**: GitHub Issues (if applicable)
-- **Support**: Contact your administrator
 
 ---
 

@@ -545,7 +545,7 @@ Final infrastructure decisions must be made by authorized officials following pr
 - Complete optimization pipeline
 - AI-powered features
 - Natural language queries
-- Docker deployment support
+- Local and server deployment support
 
 ---
 

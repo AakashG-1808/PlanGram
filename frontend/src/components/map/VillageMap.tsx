@@ -38,6 +38,7 @@ interface VillageMapProps {
   threshold: number;
   candidates: Candidate[];
   onSelectCandidate?: (candidate: Candidate) => void;
+  onDismissCandidate?: (candidate: Candidate) => void;
   proposedFacilities?: ProposedFacility[];
   onAddProposedFacility?: (loc: [number, number]) => void;
   onUpdateProposedFacilityLocation?: (id: string, loc: [number, number]) => void;
@@ -77,6 +78,7 @@ export default function VillageMap({
   threshold,
   candidates,
   onSelectCandidate,
+  onDismissCandidate,
   proposedFacilities = [],
   onAddProposedFacility,
   onUpdateProposedFacilityLocation,
@@ -403,27 +405,53 @@ export default function VillageMap({
       el.innerHTML = `${rank}`;
       el.title = `Candidate #${rank} — Click to place facility here`;
 
-      const popup = new maplibregl.Popup({ offset: 12 }).setHTML(
-        `<div class="text-xs font-sans p-1">
-          <div class="font-bold text-indigo-900 text-sm">Recommended Site #${rank}</div>
-          <div class="text-slate-600 mt-1">Suitability: <strong>${Math.round(cand.combined_score)}%</strong></div>
+      const popupEl = document.createElement('div');
+      popupEl.className = 'text-xs font-sans p-2 min-w-[170px] space-y-2';
+      popupEl.innerHTML = `
+        <div class="font-bold text-indigo-900 text-sm flex items-center justify-between">
+          <span>Recommended Site #${rank}</span>
+          <span class="text-[10px] px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-800 font-bold">${Math.round(cand.combined_score)}% fit</span>
+        </div>
+        <div class="text-slate-600 text-[11px] mt-1">
+          <div>Suitability: <strong>${Math.round(cand.suitability_score || cand.combined_score)}%</strong></div>
           <div class="text-emerald-700 font-semibold mt-0.5">+${cand.households_gained || 160} households gained</div>
-          <div class="text-[11px] text-blue-600 mt-2 font-bold bg-blue-50 p-1 rounded text-center">Click to place facility</div>
-        </div>`
-      );
+        </div>
+      `;
+
+      const btnRow = document.createElement('div');
+      btnRow.className = 'flex items-center gap-1.5 pt-1 border-t border-slate-200 mt-2';
+
+      const placeBtn = document.createElement('button');
+      placeBtn.className = 'flex-1 py-1 px-2 rounded-md bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[11px] text-center transition-colors shadow-sm';
+      placeBtn.innerText = '📍 Pin Facility';
+      placeBtn.onclick = () => {
+        if (onSelectCandidate) onSelectCandidate(cand);
+        popup.remove();
+      };
+
+      const dismissBtn = document.createElement('button');
+      dismissBtn.className = 'py-1 px-2 rounded-md bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 font-bold text-[11px] text-center transition-colors';
+      dismissBtn.innerText = '✕ Remove';
+      dismissBtn.title = 'Remove this recommended location';
+      dismissBtn.onclick = () => {
+        if (onDismissCandidate) onDismissCandidate(cand);
+        popup.remove();
+      };
+
+      btnRow.appendChild(placeBtn);
+      btnRow.appendChild(dismissBtn);
+      popupEl.appendChild(btnRow);
+
+      const popup = new maplibregl.Popup({ offset: 12 }).setDOMContent(popupEl);
 
       const marker = new maplibregl.Marker({ element: el })
         .setLngLat(cand.location)
         .setPopup(popup)
         .addTo(map.current!);
 
-      el.addEventListener('click', () => {
-        if (onSelectCandidate) onSelectCandidate(cand);
-      });
-
       candidateMarkersRef.current.push(marker);
     });
-  }, [candidates, layerVisibility.candidates, onSelectCandidate, mapReady]);
+  }, [candidates, layerVisibility.candidates, onSelectCandidate, onDismissCandidate, mapReady]);
 
   // =====================================================================
   // 7. PROPOSED FACILITY MARKERS (draggable, multi-facility support)
