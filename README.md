@@ -1,4 +1,4 @@
-# PlanGram
+#PlanGram
 
 PlanGram is a simple planning tool that helps people study village maps and decide where to place infrastructure such as water facilities, community services, or other public assets.
 
